@@ -1,0 +1,39 @@
+<?import javafx.scene.control.*?>
+<?import javafx.scene.Group?>
+<?import javafx.scene.layout.*?>
+<VBox xmlns:fx="http://javafx.com/fxml"
+      fx:controller="org.nojob.storyeditor.controller.MainController">
+    <VBox>
+        <MenuBar>
+            <Menu text="文件">
+                <MenuItem text="新建"/>
+                <MenuItem text="打开"/>
+                <MenuItem text="退出" onAction="#onExit"/>
+            </Menu>
+            <Menu text="帮助">
+                <MenuItem text="关于"/>
+            </Menu>
+        </MenuBar>
+        <ToolBar>
+            <Button text="新建" onAction="#onAddActionNode" mnemonicParsing="false"/>
+            <Button text="放大" onAction="#onScaleUp" mnemonicParsing="false"/>
+            <Button text="缩小" onAction="#onScaleDown" mnemonicParsing="false"/>
+            <Pane prefHeight="-1.0" prefWidth="-1.0" HBox.hgrow="ALWAYS"/>
+            <TextField text=""/>
+            <Button text="搜索"/>
+        </ToolBar>
+    </VBox>
+
+    <ScrollPane fitToWidth="true" fitToHeight="true" VBox.vgrow="ALWAYS">
+        <Group>
+            <Group fx:id="zoomGroup">
+                <VBox fx:id="actionNodeContainer" spacing="10">
+
+                </VBox>
+            </Group>
+        </Group>
+    </ScrollPane>
+
+    <Label text="状态栏"/>
+
+</VBox>
