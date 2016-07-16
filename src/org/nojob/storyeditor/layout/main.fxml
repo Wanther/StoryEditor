@@ -1,23 +1,28 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.Group?>
 <?import javafx.scene.layout.*?>
+<?import org.nojob.storyeditor.view.WorkSheetPane?>
 <VBox xmlns:fx="http://javafx.com/fxml"
       fx:controller="org.nojob.storyeditor.controller.MainController">
     <VBox>
         <MenuBar>
             <Menu text="文件">
-                <MenuItem text="新建"/>
-                <MenuItem text="打开"/>
-                <MenuItem text="退出" onAction="#onExit"/>
+                <MenuItem text="新建项目" onAction="#onNew" mnemonicParsing="false"/>
+                <MenuItem text="打开" mnemonicParsing="false"/>
+                <MenuItem text="退出" onAction="#onExit" mnemonicParsing="false"/>
+            </Menu>
+            <Menu text="查看">
+                <MenuItem text="放大" onAction="#onZoomIn" mnemonicParsing="false"/>
+                <MenuItem text="缩小" onAction="#onZoomOut" mnemonicParsing="false"/>
             </Menu>
             <Menu text="帮助">
-                <MenuItem text="关于"/>
+                <MenuItem text="关于" mnemonicParsing="false"/>
             </Menu>
         </MenuBar>
         <ToolBar>
-            <Button text="新建" onAction="#onAddActionNode" mnemonicParsing="false"/>
-            <Button text="放大" onAction="#onScaleUp" mnemonicParsing="false"/>
-            <Button text="缩小" onAction="#onScaleDown" mnemonicParsing="false"/>
+            <Button text="新建" onAction="#onAddStoryAction" mnemonicParsing="false"/>
+            <Button text="放大" onAction="#onZoomIn" mnemonicParsing="false"/>
+            <Button text="缩小" onAction="#onZoomOut" mnemonicParsing="false"/>
             <Pane prefHeight="-1.0" prefWidth="-1.0" HBox.hgrow="ALWAYS"/>
             <TextField text=""/>
             <Button text="搜索"/>
@@ -27,9 +32,7 @@
     <ScrollPane fitToWidth="true" fitToHeight="true" VBox.vgrow="ALWAYS">
         <Group>
             <Group fx:id="zoomGroup">
-                <VBox fx:id="actionNodeContainer" spacing="10">
-
-                </VBox>
+                <WorkSheetPane fx:id="actionNodeContainer"/>
             </Group>
         </Group>
     </ScrollPane>
