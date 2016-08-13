@@ -1,0 +1,23 @@
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<GridPane xmlns:fx="http://javafx.com/fxml"
+          fx:controller="org.nojob.storyeditor.controller.NewProjectController"
+          vgap="5" prefWidth="480">
+    <padding>
+        <Insets top="5" right="5" bottom="5" left="5"/>
+    </padding>
+    <columnConstraints>
+        <ColumnConstraints hgrow="NEVER" minWidth="80.0" prefWidth="80" />
+        <ColumnConstraints hgrow="ALWAYS" minWidth="200.0" />
+        <ColumnConstraints hgrow="NEVER" minWidth="30" />
+    </columnConstraints>
+    <children>
+        <Label text="项目名称" GridPane.columnIndex="0" GridPane.rowIndex="0"/>
+        <TextField fx:id="projectName" GridPane.columnIndex="1" GridPane.rowIndex="0" GridPane.columnSpan="2"/>
+
+        <Label text="路径" GridPane.columnIndex="0" GridPane.rowIndex="1"/>
+        <Label fx:id="projectPath" GridPane.columnIndex="1" GridPane.rowIndex="1"/>
+        <Button text="..." onAction="#onSelectProjectPath" GridPane.columnIndex="2" GridPane.rowIndex="1"/>
+    </children>
+</GridPane>

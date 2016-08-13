@@ -1,0 +1,97 @@
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.control.cell.PropertyValueFactory?>
+<?import javafx.scene.layout.*?>
+<?import org.nojob.storyeditor.view.CellFactorys?>
+<?import org.nojob.storyeditor.view.EventCluePropertyValue?>
+<VBox xmlns:fx="http://javafx.com/fxml"
+      fx:id="root"
+      fx:controller="org.nojob.storyeditor.controller.ActionDetailController"
+      fillWidth="true" prefWidth="1024" prefHeight="768">
+
+    <TitledPane animated="false" expanded="true" text="基本">
+        <GridPane vgap="5.0">
+            <padding>
+                <Insets top="5" right="5" bottom="5" left="5"/>
+            </padding>
+            <columnConstraints>
+                <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
+                <ColumnConstraints hgrow="ALWAYS" minWidth="10.0" />
+            </columnConstraints>
+            <children>
+                <Label text="ID" GridPane.columnIndex="0" GridPane.rowIndex="0"/>
+                <Label fx:id="actionId" GridPane.columnIndex="1" GridPane.rowIndex="0"/>
+
+                <Label text="关键节点" GridPane.columnIndex="0" GridPane.rowIndex="1"/>
+                <CheckBox fx:id="isKeyAction" GridPane.columnIndex="1" GridPane.rowIndex="1"/>
+
+                <Label text="节点名称" GridPane.columnIndex="0" GridPane.rowIndex="2"/>
+                <TextField fx:id="keyActionName" GridPane.columnIndex="1" GridPane.rowIndex="2" promptText="关键节点请填写"/>
+
+                <Label text="成就值" GridPane.columnIndex="0" GridPane.rowIndex="3"/>
+                <TextField fx:id="achievement" GridPane.columnIndex="1" GridPane.rowIndex="3"/>
+
+                <Label text="支付金额" GridPane.columnIndex="0" GridPane.rowIndex="4"/>
+                <TextField fx:id="payAmount" GridPane.columnIndex="1" GridPane.rowIndex="4"/>
+            </children>
+        </GridPane>
+    </TitledPane>
+
+    <TitledPane animated="false" expanded="true" text="剧情列表">
+        <VBox spacing="5">
+            <HBox spacing="5">
+                <Button text="添加" onAction="#onAddItem"/>
+                <Button fx:id="itemEditBtn" text="编辑" onAction="#onEditItem" disable="true"/>
+                <Button fx:id="itemDeleteBtn" text="删除" onAction="#onDeleteItem" disable="true"/>
+            </HBox>
+            <TableView fx:id="itemListView" VBox.vgrow="ALWAYS" editable="false">
+                <columns>
+                    <TableColumn text="文字" sortable="false" prefWidth="200">
+                        <cellValueFactory>
+                            <PropertyValueFactory property="text"/>
+                        </cellValueFactory>
+                        <cellFactory>
+                            <CellFactorys fx:factory="actionItemTextForTableCell"/>
+                        </cellFactory>
+                    </TableColumn>
+
+                    <TableColumn text="粗体" sortable="false">
+                        <cellValueFactory>
+                            <PropertyValueFactory property="isBold"/>
+                        </cellValueFactory>
+                    </TableColumn>
+
+                    <TableColumn text="字号" sortable="false">
+                        <cellValueFactory>
+                            <PropertyValueFactory property="fontSize"/>
+                        </cellValueFactory>
+                    </TableColumn>
+
+                    <TableColumn text="延时" sortable="false">
+                        <cellValueFactory>
+                            <PropertyValueFactory property="delay"/>
+                        </cellValueFactory>
+                    </TableColumn>
+
+                    <TableColumn text="线索" sortable="false">
+                        <cellValueFactory>
+                            <EventCluePropertyValue type="clue"/>
+                        </cellValueFactory>
+                    </TableColumn>
+
+                    <TableColumn text="事件" sortable="false">
+                        <cellValueFactory>
+                            <EventCluePropertyValue type="event"/>
+                        </cellValueFactory>
+                    </TableColumn>
+
+                    <TableColumn text="音效" sortable="false">
+                        <cellValueFactory>
+                            <PropertyValueFactory property="sound"/>
+                        </cellValueFactory>
+                    </TableColumn>
+                </columns>
+            </TableView>
+        </VBox>
+    </TitledPane>
+</VBox>

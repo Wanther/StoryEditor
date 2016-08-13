@@ -1,10 +1,20 @@
 package org.nojob.storyeditor;
 
 import javafx.application.Application;
+import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.SimpleObjectProperty;
+import javafx.concurrent.Task;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.control.Alert;
 import javafx.stage.Stage;
+import org.nojob.storyeditor.model.Project;
+
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 
 public class StoryEditor extends Application {
 
@@ -14,12 +24,37 @@ public class StoryEditor extends Application {
         return sInstance;
     }
 
+    private ObjectProperty<Project> project;
+
+    private ExecutorService backgroundExecutor;
+
+    public ObjectProperty<Project> projectProperty() {
+        if (project == null) {
+            project = new SimpleObjectProperty<>(this, "project");
+        }
+        return project;
+    }
+
+    public Project getProject() {
+        return projectProperty().get();
+    }
+
+    public void setProject(Project project) {
+        this.projectProperty().set(project);
+    }
+
+    public Future<?> async(Task<?> task) {
+        backgroundExecutor.execute(task);
+        return task;
+    }
 
     @Override
     public void init() throws Exception {
         super.init();
 
         sInstance = this;
+
+        backgroundExecutor = Executors.newCachedThreadPool();
     }
 
     @Override
@@ -28,18 +63,25 @@ public class StoryEditor extends Application {
         Parent root = FXMLLoader.load(getClass().getResource("layout/main.fxml"));
 
         primaryStage.setTitle("Story Editor");
-        Scene scene = new Scene(root);
-        scene.getStylesheets().add(getClass().getResource("style/application.css").toExternalForm());
-        scene.getStylesheets().add(getClass().getResource("style/actionNode.css").toExternalForm());
-        primaryStage.setScene(scene);
-        primaryStage.setMaximized(true);
+        primaryStage.setScene(new Scene(root, 1024, 768));
+        //primaryStage.setMaximized(true);
         primaryStage.show();
     }
 
     @Override
     public void stop() throws Exception {
         super.stop();
-        // application stop, release resources and stop tasks
+
+        backgroundExecutor.shutdown();
+
+        while (!backgroundExecutor.isTerminated()) {
+            backgroundExecutor.awaitTermination(1, TimeUnit.SECONDS);
+        }
+    }
+
+    public void catchException(Throwable e) {
+        e.printStackTrace();
+        new Alert(Alert.AlertType.ERROR, e.getMessage()).showAndWait();
     }
 
     public static void main(String[] args) {

@@ -1,0 +1,13 @@
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+<?import org.nojob.storyeditor.view.ActionNode?>
+<ActionNode xmlns:fx="http://javafx.com/fxml" styleClass="action-node">
+    <VBox>
+        <HBox>
+            <Label fx:id="actionId"/>
+            <Label fx:id="keyActionText" VBox.vgrow="ALWAYS"/>
+        </HBox>
+        <VBox fx:id="itemContainer"/>
+    </VBox>
+</ActionNode>

@@ -1,0 +1,80 @@
+<?import javafx.scene.control.*?>
+<?import javafx.scene.control.cell.PropertyValueFactory?>
+<?import javafx.scene.control.cell.TextFieldTableCell?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.geometry.Insets?>
+<TabPane xmlns:fx="http://javafx.com/fxml"
+         fx:controller="org.nojob.storyeditor.controller.RightPaneController"
+         minWidth="200">
+    <Tab text="事件" closable="false">
+        <VBox spacing="5">
+            <padding>
+                <Insets top="5" right="0" bottom="0" left="0"/>
+            </padding>
+
+            <HBox spacing="5">
+                <TextField fx:id="addEventText" promptText="请输入事件描述" HBox.hgrow="ALWAYS"/>
+                <Button fx:id="addEventBtn" text="添加"/>
+            </HBox>
+
+            <TableView fx:id="eventListView" VBox.vgrow="ALWAYS">
+                <columns>
+                    <TableColumn text="ID" sortable="false" editable="false" maxWidth="40">
+                        <cellValueFactory>
+                            <PropertyValueFactory property="id"/>
+                        </cellValueFactory>
+                    </TableColumn>
+                    <TableColumn fx:id="eventTextColumn" text="描述" sortable="false" editable="true">
+                        <cellValueFactory>
+                            <PropertyValueFactory property="text"/>
+                        </cellValueFactory>
+                        <cellFactory>
+                            <TextFieldTableCell fx:factory="forTableColumn"/>
+                        </cellFactory>
+                    </TableColumn>
+                    <TableColumn text="操作">
+                        <cellFactory>
+                            <org.nojob.storyeditor.view.CellFactorys fx:factory="buttonForTableCell"/>
+                        </cellFactory>
+                    </TableColumn>
+                </columns>
+            </TableView>
+        </VBox>
+    </Tab>
+    <Tab text="线索" closable="false">
+        <VBox spacing="5">
+            <padding>
+                <Insets top="5" right="0" bottom="0" left="0"/>
+            </padding>
+
+            <HBox spacing="5">
+                <TextField fx:id="addClueText" promptText="请输入事件描述" HBox.hgrow="ALWAYS"/>
+                <Button fx:id="addClueBtn" text="添加"/>
+            </HBox>
+
+            <TableView fx:id="clueListView" VBox.vgrow="ALWAYS">
+                <columns>
+                    <TableColumn text="ID" sortable="false" editable="false" maxWidth="40">
+                        <cellValueFactory>
+                            <PropertyValueFactory property="id"/>
+                        </cellValueFactory>
+                    </TableColumn>
+                    <TableColumn fx:id="clueTextColumn" text="描述" sortable="false" editable="true">
+                        <cellValueFactory>
+                            <PropertyValueFactory property="text"/>
+                        </cellValueFactory>
+                        <cellFactory>
+                            <TextFieldTableCell fx:factory="forTableColumn"/>
+                        </cellFactory>
+                    </TableColumn>
+                    <TableColumn text="操作">
+                        <cellFactory>
+                            <org.nojob.storyeditor.view.CellFactorys fx:factory="buttonForTableCell"/>
+                        </cellFactory>
+                    </TableColumn>
+                </columns>
+            </TableView>
+        </VBox>
+    </Tab>
+</TabPane>

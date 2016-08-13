@@ -1,0 +1,25 @@
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<GridPane xmlns:fx="http://javafx.com/fxml" vgap="5">
+    <padding>
+        <Insets top="5" right="5" bottom="5" left="5"/>
+    </padding>
+    <columnConstraints>
+        <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
+        <ColumnConstraints hgrow="ALWAYS" minWidth="10.0" />
+    </columnConstraints>
+    <children>
+        <Label text="节点ID" GridPane.columnIndex="0" GridPane.rowIndex="0"/>
+        <Label fx:id="id" GridPane.columnIndex="1" GridPane.rowIndex="0"/>
+
+        <Label text="下一节点ID" GridPane.columnIndex="0" GridPane.rowIndex="1"/>
+        <TextField fx:id="linkId" GridPane.columnIndex="1" GridPane.rowIndex="1"/>
+
+        <Label text="按钮文字" GridPane.columnIndex="0" GridPane.rowIndex="2"/>
+        <TextField fx:id="linkText" GridPane.columnIndex="1" GridPane.rowIndex="2"/>
+
+        <Label text="找到的线索ID" GridPane.columnIndex="0" GridPane.rowIndex="3"/>
+        <TextField fx:id="foundedClueId" GridPane.columnIndex="1" GridPane.rowIndex="3"/>
+    </children>
+</GridPane>

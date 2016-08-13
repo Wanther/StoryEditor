@@ -1,0 +1,10 @@
+<?import javafx.scene.control.SplitPane?>
+<?import org.nojob.storyeditor.view.Viewport?>
+<SplitPane xmlns:fx="http://javafx.com/fxml"
+           fx:controller="org.nojob.storyeditor.controller.ProjectController"
+           orientation="HORIZONTAL" dividerPositions="0.75">
+    <Viewport fx:id="actionViewport" />
+
+    <fx:include source="rightPane.fxml"/>
+
+</SplitPane>

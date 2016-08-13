@@ -1,7 +1,0 @@
-<?import javafx.scene.layout.VBox?>
-<?import javafx.scene.control.Label?>
-<VBox xmlns:fx="http://javafx.com/fxml" styleClass="actionNode">
-    <Label text="[1]"/>
-    <Label text="很久很久以前"/>
-    <Label text="有一个大灰狼"/>
-</VBox>
