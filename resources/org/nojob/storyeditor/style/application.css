@@ -3,13 +3,11 @@
 }
 
 .action-node {
-    -fx-border-color: #cccccc;
+    -fx-border-color: #000000;
     -fx-min-width: 100;
     -fx-min-height: 80;
     -fx-padding: 5 5 5 5;
-    -fx-background-color: #00bdef;
-    -fx-background-radius: 5;
-    -fx-border-radius: 5;
+    -fx-background-color: #ffffff;
 }
 
 .selected {

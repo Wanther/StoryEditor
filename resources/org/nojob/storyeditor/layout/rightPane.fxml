@@ -35,7 +35,7 @@
                     </TableColumn>
                     <TableColumn text="操作">
                         <cellFactory>
-                            <org.nojob.storyeditor.view.CellFactorys fx:factory="buttonForTableCell"/>
+                            <org.nojob.storyeditor.view.cell.CellFactorys fx:factory="buttonForTableCell"/>
                         </cellFactory>
                     </TableColumn>
                 </columns>
@@ -70,8 +70,30 @@
                     </TableColumn>
                     <TableColumn text="操作">
                         <cellFactory>
-                            <org.nojob.storyeditor.view.CellFactorys fx:factory="buttonForTableCell"/>
+                            <org.nojob.storyeditor.view.cell.CellFactorys fx:factory="buttonForTableCell"/>
                         </cellFactory>
+                    </TableColumn>
+                </columns>
+            </TableView>
+        </VBox>
+    </Tab>
+    <Tab text="音效" closable="false">
+        <VBox spacing="5">
+            <padding>
+                <Insets top="5" right="0" bottom="0" left="0"/>
+            </padding>
+
+            <HBox spacing="5" alignment="CENTER_RIGHT">
+                <Button fx:id="addSoundBtn" text="添加"/>
+                <Button fx:id="deleteSoundBtn" text="删除"/>
+            </HBox>
+
+            <TableView fx:id="soundListView" VBox.vgrow="ALWAYS">
+                <columns>
+                    <TableColumn fx:id="soundNameColumn" text="文件名" sortable="false" editable="true">
+                        <cellValueFactory>
+                            <PropertyValueFactory property="name"/>
+                        </cellValueFactory>
                     </TableColumn>
                 </columns>
             </TableView>

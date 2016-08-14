@@ -80,6 +80,12 @@ public class ActionDetailController implements Callback<ButtonType, Map<String, 
         isKeyAction.setSelected(action.isKeyAction());
         isKeyAction.selectedProperty().addListener((observable, oldValue, newValue) -> {
             modifiedMap.put("isKeyAction", newValue);
+            if (newValue) {
+                keyActionName.setDisable(false);
+            } else {
+                keyActionName.setText(null);
+                keyActionName.setDisable(true);
+            }
         });
 
         keyActionName.setText(action.getKeyActionText());
@@ -151,9 +157,11 @@ public class ActionDetailController implements Callback<ButtonType, Map<String, 
 
     @FXML
     protected void onDeleteItem() {
-        ActionItem selectedItem = itemListView.getSelectionModel().getSelectedItem();
-        itemListView.getItems().remove(selectedItem);
-        modifiedMap.put("items", itemListView.getItems());
+        new Alert(Alert.AlertType.CONFIRMATION, "确定删除?").showAndWait().filter(response -> response == ButtonType.OK).ifPresent(response -> {
+            ActionItem selectedItem = itemListView.getSelectionModel().getSelectedItem();
+            itemListView.getItems().remove(selectedItem);
+            modifiedMap.put("items", itemListView.getItems());
+        });
     }
 
     protected void saveOrEdit(Map<String, Object> response) {
@@ -205,6 +213,7 @@ public class ActionDetailController implements Callback<ButtonType, Map<String, 
         }
 
         modifiedMap.put("items", itemListView.getItems());
+        itemListView.refresh();
     }
 
     protected ActionItem findItemById(int id) {

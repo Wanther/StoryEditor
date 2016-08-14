@@ -1,4 +1,4 @@
-package org.nojob.storyeditor.view;
+package org.nojob.storyeditor.view.cell;
 
 import javafx.scene.control.ListCell;
 import org.nojob.storyeditor.model.StoryEvent;

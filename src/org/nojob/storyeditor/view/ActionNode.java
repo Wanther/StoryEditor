@@ -58,6 +58,7 @@ public class ActionNode extends Control {
         actionId.setText(String.format("[%d]", action.getId()));
 
         keyActionText = (Label) getContent().lookup("#keyActionText");
+        keyActionText.setText(action.getKeyActionText());
         action.keyActionTextProperty().addListener((observable, oldValue, newValue) -> {
             keyActionText.setText(newValue);
         });

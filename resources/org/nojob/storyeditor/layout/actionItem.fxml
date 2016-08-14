@@ -2,9 +2,10 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 <?import java.lang.String?>
-<?import org.nojob.storyeditor.view.CellFactorys?>
-<?import org.nojob.storyeditor.view.ClueListCell?>
-<?import org.nojob.storyeditor.view.StoryEventListCell?>
+<?import org.nojob.storyeditor.view.cell.CellFactorys?>
+<?import org.nojob.storyeditor.view.cell.ClueListCell?>
+<?import org.nojob.storyeditor.view.cell.StoryEventListCell?>
+<?import org.nojob.storyeditor.view.cell.FilenameListCell?>
 <GridPane xmlns:fx="http://javafx.com/fxml"
           fx:controller="org.nojob.storyeditor.controller.ActionItemController" vgap="5" hgap="5">
     <padding>
@@ -51,8 +52,18 @@
             </buttonCell>
         </ComboBox>
 
-        <Label text="延时" GridPane.columnIndex="0" GridPane.rowIndex="6"/>
-        <TextField fx:id="delay" GridPane.columnIndex="1" GridPane.rowIndex="6"/>
+        <Label text="音效" GridPane.columnIndex="0" GridPane.rowIndex="6"/>
+        <ComboBox fx:id="soundList" GridPane.columnIndex="1" GridPane.rowIndex="6">
+            <cellFactory>
+                <CellFactorys fx:factory="soundCellForCombox"/>
+            </cellFactory>
+            <buttonCell>
+                <FilenameListCell />
+            </buttonCell>
+        </ComboBox>
+
+        <Label text="延时" GridPane.columnIndex="0" GridPane.rowIndex="7"/>
+        <TextField fx:id="delay" GridPane.columnIndex="1" GridPane.rowIndex="7"/>
 
     </children>
 </GridPane>

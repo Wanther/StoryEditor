@@ -10,6 +10,7 @@ import javafx.scene.Node;
 import javafx.scene.control.*;
 import javafx.scene.input.MouseEvent;
 import org.nojob.storyeditor.StoryEditor;
+import org.nojob.storyeditor.exception.AppException;
 import org.nojob.storyeditor.model.*;
 import org.nojob.storyeditor.view.ActionNode;
 import org.nojob.storyeditor.view.LinkLine;
@@ -63,16 +64,12 @@ public class ProjectController {
         });
     }
 
-    public void onViewEvents() {
-
-    }
-
     public void onZoomIn() {
-
+        actionViewport.zoomIn();
     }
 
     public void onZoomOut() {
-
+        actionViewport.zoomOut();
     }
 
     public void onSearch(String queryString) {
@@ -114,20 +111,22 @@ public class ProjectController {
         });
         menu.getItems().add(item);
 
-        item = new MenuItem("删除");
-        item.getProperties().put("target_action", actionPane);
-        item.setOnAction(e -> {
-            MenuItem clicked = (MenuItem)e.getSource();
-            ActionNode ap = (ActionNode)clicked.getProperties().get("target_action");
-            StoryEditor.Instance().getProject().getActions().remove(ap.getAction());
-        });
-        menu.getItems().add(item);
-
         item = new MenuItem("属性");
         item.getProperties().put("target_action", actionPane);
         item.setOnAction(e -> {
             MenuItem clicked = (MenuItem)e.getSource();
             showActionDetail((ActionNode)clicked.getProperties().get("target_action"));
+        });
+        menu.getItems().add(item);
+
+        item = new MenuItem("删除");
+        item.getProperties().put("target_action", actionPane);
+        item.setOnAction(e -> {
+            new Alert(Alert.AlertType.CONFIRMATION, "确定删除?").showAndWait().filter(response -> response == ButtonType.OK).ifPresent(response -> {
+                MenuItem clicked = (MenuItem)e.getSource();
+                ActionNode ap = (ActionNode)clicked.getProperties().get("target_action");
+                StoryEditor.Instance().getProject().getActions().remove(ap.getAction());
+            });
         });
         menu.getItems().add(item);
 
@@ -140,15 +139,17 @@ public class ProjectController {
         MenuItem item = new MenuItem("删除连接");
         item.getProperties().put("target_line", line);
         item.setOnAction(e -> {
-            MenuItem clicked = (MenuItem)e.getSource();
-            LinkLine l = (LinkLine) clicked.getProperties().get("target_line");
-            Iterator<ActionLink> it = line.getLinkFrom().getAction().getLinkList().iterator();
-            while (it.hasNext()) {
-                ActionLink link = it.next();
-                if (link.getLinkToId() == l.getLinkTo().getAction().getId()) {
-                    it.remove();
+            new Alert(Alert.AlertType.CONFIRMATION, "确定删除?").showAndWait().filter(response -> response == ButtonType.OK).ifPresent(response -> {
+                MenuItem clicked = (MenuItem)e.getSource();
+                LinkLine l = (LinkLine) clicked.getProperties().get("target_line");
+                Iterator<ActionLink> it = line.getLinkFrom().getAction().getLinkList().iterator();
+                while (it.hasNext()) {
+                    ActionLink link = it.next();
+                    if (link.getLinkToId() == l.getLinkTo().getAction().getId()) {
+                        it.remove();
+                    }
                 }
-            }
+            });
         });
         contextMenu.getItems().add(item);
 
@@ -156,54 +157,23 @@ public class ProjectController {
     }
 
     protected void requestCreateLink(ActionNode actionNode) {
-        Dialog<ActionLink> dialog = new Dialog<>();
-        dialog.setTitle("创建连接");
 
-        DialogPane createLinkPane = new DialogPane();
-        try {
-            createLinkPane.setContent(FXMLLoader.load(StoryEditor.class.getResource("layout/actionLink.fxml")));
-        } catch (IOException e) {
-            e.printStackTrace();
+        if (actionNode.getAction().getLinkList().size() >= 2) {
+            StoryEditor.Instance().catchException(new AppException("该节点连接数超过上限"));
+            return;
         }
 
-        Label idLabel = (Label) createLinkPane.lookup("#id");
-        idLabel.setText(actionNode.getAction().getId() + "");
-
-        createLinkPane.getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
-        dialog.setResultConverter(dialogButton -> {
-            if (dialogButton == ButtonType.OK) {
-                TextField text = (TextField) createLinkPane.lookup("#linkId");
-                String linkId = text.getText();
-                text = (TextField) createLinkPane.lookup("#linkText");
-                String linkText = text.getText();
-                text = (TextField) createLinkPane.lookup("#foundedClueId");
-                String foundedClueId = text.getText();
-
-                //TODO: 校验
-
-                ActionLink actionLink = new ActionLink();
-                actionLink.setLinkFromId(actionNode.getAction().getId());
-                actionLink.setLinkToId(Integer.parseInt(linkId));
-
-                try {
-                    actionLink.setFoundedClueId(Integer.parseInt(foundedClueId));
-                } catch (NumberFormatException e) {
-
-                }
-                actionLink.setText(linkText);
-                return actionLink;
-            }
-            return null;
-        });
-
-        dialog.setDialogPane(createLinkPane);
-
+        Dialog<ActionLink> dialog = ActionLinkController.create(actionNode);
         dialog.showAndWait().ifPresent(this::createLinkLine);
 
     }
 
     protected void createLinkLine(ActionLink actionLink) {
         StoryEditor.Instance().getProject().getActions().stream().filter(item -> item.getId() == actionLink.getLinkFromId()).forEach(item -> {
+            if (item.getLinkList().size() >= 2) {
+                StoryEditor.Instance().catchException(new AppException("该节点连接数超过上限"));
+                return;
+            }
             item.getLinkList().add(actionLink);
         });
     }
@@ -319,6 +289,11 @@ public class ProjectController {
                     c.getAddedSubList().forEach(link -> {
                         LinkLine line = LinkLine.create(link, actionViewport);
                         line.setContextMenu(buildLinkContextMenu(line));
+                        line.setOnMouseClicked((MouseEvent e) -> {
+                            if (e.getClickCount() >= 2) {
+                                //TODO: shou link detail
+                            }
+                        });
                         actionViewport.getItems().add(0, line);
                     });
                 }

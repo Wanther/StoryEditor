@@ -2,8 +2,8 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.control.cell.PropertyValueFactory?>
 <?import javafx.scene.layout.*?>
-<?import org.nojob.storyeditor.view.CellFactorys?>
-<?import org.nojob.storyeditor.view.EventCluePropertyValue?>
+<?import org.nojob.storyeditor.view.cell.CellFactorys?>
+<?import org.nojob.storyeditor.view.cell.EventCluePropertyValue?>
 <VBox xmlns:fx="http://javafx.com/fxml"
       fx:id="root"
       fx:controller="org.nojob.storyeditor.controller.ActionDetailController"

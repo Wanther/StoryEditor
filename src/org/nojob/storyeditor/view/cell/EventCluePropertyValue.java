@@ -1,4 +1,4 @@
-package org.nojob.storyeditor.view;
+package org.nojob.storyeditor.view.cell;
 
 import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.beans.value.ObservableValue;
@@ -31,7 +31,7 @@ public class EventCluePropertyValue implements Callback<TableColumn.CellDataFeat
 
     @Override
     public ObservableValue<String> call(TableColumn.CellDataFeatures<ActionItem, String> param) {
-        ActionItem item = (ActionItem) param.getValue();
+        ActionItem item = param.getValue();
         if ("event".equals(type)) {
             return item.getEvent() == null ? null : new ReadOnlyObjectWrapper<>(item.getEvent().getText());
         } else if ("clue".equals(type)) {

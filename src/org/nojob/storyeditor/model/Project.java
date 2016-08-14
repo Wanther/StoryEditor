@@ -22,6 +22,7 @@ public class Project {
 
     public static final String PROJECT_FILE = ".storyEditor";
     public static final String RESOURCE_DIR = "resources";
+    public static final String SOUND_DIR = "audio";
     public static final String PROJECT_CONTENT = "project.json";
 
     public static Project create(File rootDir) {
@@ -76,8 +77,16 @@ public class Project {
                 if (array != null) {
                     for (int i = 0, size = array.size(); i < size; i++) {
                         JsonObject json = (JsonObject)array.get(i);
-                        StoryAction action = StoryAction.create(json);
+                        StoryAction action = StoryAction.create(json, project);
                         project.getActions().add(action);
+                    }
+                }
+
+                File soundDir = project.getSoundDir();
+                File[] soundFiles = soundDir.listFiles((dir, name) -> name.endsWith(".mp3") || name.endsWith(".MP3"));
+                if (soundFiles != null) {
+                    for (File soundFile : soundFiles) {
+                        project.getSoundList().add(soundFile);
                     }
                 }
 
@@ -99,6 +108,8 @@ public class Project {
     private ObservableList<StoryAction> actions;
     private ObservableList<StoryEvent> events;
     private ObservableList<Clue> clues;
+    private ObservableList<File> sounds;
+    private BooleanProperty isLocked;
 
     public void init() {
         actionsProperty().addListener(new ListChangeListener<StoryAction>() {
@@ -210,6 +221,32 @@ public class Project {
 
     public File getResDir() {
         return new File(rootDir, RESOURCE_DIR);
+    }
+
+    public File getSoundDir() {
+        return new File(getResDir(), SOUND_DIR);
+    }
+
+    public ObservableList<File> getSoundList() {
+        if (sounds == null) {
+            sounds = FXCollections.observableArrayList();
+        }
+        return sounds;
+    }
+
+    public BooleanProperty isLockedProperty() {
+        if (isLocked == null) {
+            isLocked = new SimpleBooleanProperty(this, "isLocked");
+        }
+        return isLocked;
+    }
+
+    public void setLocked(boolean isLocked) {
+        isLockedProperty().set(isLocked);
+    }
+
+    public boolean isLocked() {
+        return isLockedProperty().get();
     }
 
     public JsonObject toJSONObject() {

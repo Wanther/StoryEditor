@@ -2,11 +2,12 @@ package org.nojob.storyeditor.view;
 
 import javafx.beans.DefaultProperty;
 import javafx.collections.ObservableList;
-import javafx.geometry.Bounds;
+import javafx.geometry.Point2D;
 import javafx.scene.Group;
 import javafx.scene.Node;
 import javafx.scene.control.Control;
 import javafx.scene.control.Skin;
+import javafx.scene.transform.Affine;
 
 /**
  * Created by wanghe on 16/7/16.
@@ -34,7 +35,17 @@ public class Viewport extends Control {
         return controlGroup;
     }
 
-    public Bounds getViewportBounds() {
-        return controlGroup.parentToLocal(getBoundsInLocal());
+    public void zoomIn() {
+        Affine affine = (Affine) controlGroup.getTransforms().get(0);
+        Point2D center = localToScene(getWidth() / 2, getHeight() / 2);
+        center = controlGroup.sceneToLocal(center);
+        affine.appendScale(1.1, 1.1, center.getX(), center.getY());
+    }
+
+    public void zoomOut() {
+        Affine affine = (Affine) controlGroup.getTransforms().get(0);
+        Point2D center = localToScene(getWidth() / 2, getHeight() / 2);
+        center = controlGroup.sceneToLocal(center);
+        affine.appendScale(0.9, 0.9, center.getX(), center.getY());
     }
 }

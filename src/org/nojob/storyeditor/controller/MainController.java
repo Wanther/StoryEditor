@@ -1,6 +1,7 @@
 package org.nojob.storyeditor.controller;
 
 import javafx.application.Platform;
+import javafx.collections.ListChangeListener;
 import javafx.concurrent.Task;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -8,6 +9,7 @@ import javafx.fxml.JavaFXBuilderFactory;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.control.*;
+import javafx.scene.input.KeyCombination;
 import javafx.scene.layout.BorderPane;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.FileChooser;
@@ -15,10 +17,7 @@ import org.nojob.storyeditor.StoryEditor;
 import org.nojob.storyeditor.exception.AppException;
 import org.nojob.storyeditor.model.Project;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.OutputStream;
+import java.io.*;
 
 /**
  * Created by wanghe on 16/7/13.
@@ -55,6 +54,7 @@ public class MainController {
         StoryEditor.Instance().projectProperty().addListener((observable, oldValue, newValue) -> {
             onProjectChanged(oldValue, newValue);
         });
+        miSave.setAccelerator(KeyCombination.keyCombination("Ctrl+S"));
     }
 
     @FXML
@@ -90,7 +90,7 @@ public class MainController {
         saveProject(() -> {
             FileChooser fileChooser = new FileChooser();
             fileChooser.setTitle("选择导出目录");
-            fileChooser.getExtensionFilters().addAll(new FileChooser.ExtensionFilter("All Files", "*.*"));
+            fileChooser.getExtensionFilters().addAll(new FileChooser.ExtensionFilter("Story File", "*.story"));
             File selectedFile = fileChooser.showSaveDialog(mainLayout.getScene().getWindow());
             if (selectedFile != null) {
                 StoryEditor.Instance().async(new ExportProjectTask(selectedFile));
@@ -105,12 +105,16 @@ public class MainController {
 
     @FXML
     protected void onZoomIn() {
-
+        if (projectController != null) {
+            projectController.onZoomIn();
+        }
     }
 
     @FXML
     protected void onZoomOut() {
-
+        if (projectController != null) {
+            projectController.onZoomOut();
+        }
     }
 
     @FXML
@@ -130,7 +134,7 @@ public class MainController {
 
     protected void saveProject(OnOperateDoneListener l) {
         Project project = StoryEditor.Instance().getProject();
-        if (project != null) {
+        if (project != null && !project.isLocked()) {
             StoryEditor.Instance().async(new SaveProjectTask(l));
         } else {
             if (l != null) {
@@ -195,6 +199,14 @@ public class MainController {
             projectController = loader.getController();
 
             mainLayout.setCenter(projectPane);
+
+            newProject.isLockedProperty().addListener((observable, oldValue, newValue) -> {
+                if (newValue) {
+                    showProgressOverlay();
+                } else {
+                    hideProgressOverlay();
+                }
+            });
         }
     }
 
@@ -243,6 +255,11 @@ public class MainController {
             File resDir = project.getResDir();
 
             mkdirResult = resDir.mkdir();
+            if (!mkdirResult) {
+                throw new AppException("创建项目目录失败");
+            }
+
+            mkdirResult = project.getSoundDir().mkdir();
             if (!mkdirResult) {
                 throw new AppException("创建项目目录失败");
             }
@@ -316,7 +333,7 @@ public class MainController {
 
         public SaveProjectTask(OnOperateDoneListener l) {
             listener = l;
-            showProgressOverlay();
+            StoryEditor.Instance().getProject().setLocked(true);
         }
 
         @Override
@@ -336,18 +353,20 @@ public class MainController {
                 }
             }
 
+            Thread.sleep(200);
+
             return null;
         }
 
         @Override
         protected void failed() {
-            hideProgressOverlay();
+            StoryEditor.Instance().getProject().setLocked(false);
             StoryEditor.Instance().catchException(getException());
         }
 
         @Override
         protected void succeeded() {
-            hideProgressOverlay();
+            StoryEditor.Instance().getProject().setLocked(false);
             StoryEditor.Instance().getProject().setModified(false);
             if (listener != null) {
                 listener.done();
@@ -387,4 +406,5 @@ public class MainController {
             StoryEditor.Instance().setProject(getValue());
         }
     }
+
 }

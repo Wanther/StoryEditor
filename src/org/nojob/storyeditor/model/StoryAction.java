@@ -21,7 +21,7 @@ public class StoryAction {
         return action;
     }
 
-    public static StoryAction create(JsonObject json) {
+    public static StoryAction create(JsonObject json, Project project) {
         StoryAction action = new StoryAction();
 
         action.setId(json.get("id").getAsInt());
@@ -51,7 +51,7 @@ public class StoryAction {
         if (array != null) {
             for (int i = 0, size = array.size(); i < size; i++) {
                 JsonObject obj = (JsonObject) array.get(i);
-                ActionItem item = ActionItem.create(obj);
+                ActionItem item = ActionItem.create(obj, project);
                 action.getItemList().add(item);
             }
         }

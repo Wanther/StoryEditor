@@ -1,20 +1,21 @@
-package org.nojob.storyeditor.view;
+package org.nojob.storyeditor.view.cell;
 
 import javafx.scene.control.ListCell;
-import org.nojob.storyeditor.model.Clue;
+
+import java.io.File;
 
 /**
  * Created by wanghe on 16/8/11.
  */
-public class ClueListCell extends ListCell<Clue> {
+public class FilenameListCell extends ListCell<File> {
     @Override
-    protected void updateItem(Clue item, boolean empty) {
+    protected void updateItem(File item, boolean empty) {
         super.updateItem(item, empty);
 
         if (item == null || empty) {
             setText(null);
         } else {
-            setText(item.getText());
+            setText(item.getName());
         }
     }
 }

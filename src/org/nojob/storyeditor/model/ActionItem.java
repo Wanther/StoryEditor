@@ -10,7 +10,7 @@ import javafx.beans.property.*;
  */
 public class ActionItem implements Cloneable {
 
-    public static ActionItem create(JsonObject json) {
+    public static ActionItem create(JsonObject json, Project project) {
         ActionItem item = new ActionItem();
         item.setId(json.get("id").getAsInt());
         item.setText(json.get("text").getAsString());
@@ -24,8 +24,32 @@ public class ActionItem implements Cloneable {
         } else {
             item.setSound(jsonElement.getAsString());
         }
-        item.setClue(Clue.create(json.get("clue")));
-        item.setEvent(StoryEvent.create(json.get("event_trigger")));
+
+        JsonElement clue = json.get("clue");
+        if (clue.isJsonNull()) {
+            item.setClue(null);
+        } else {
+            int clueId = ((JsonObject)clue).get("id").getAsInt();
+            for (Clue cl : project.getClueList()) {
+                if (cl.getId() == clueId) {
+                    item.setClue(cl);
+                    break;
+                }
+            }
+        }
+
+        JsonElement event = json.get("event_trigger");
+        if (event.isJsonNull()) {
+            item.setEvent(null);
+        } else {
+            int eventId = ((JsonObject)event).get("id").getAsInt();
+            for (StoryEvent ev : project.getEventList()) {
+                if (ev.getId() == eventId) {
+                    item.setEvent(ev);
+                    break;
+                }
+            }
+        }
 
         return item;
     }

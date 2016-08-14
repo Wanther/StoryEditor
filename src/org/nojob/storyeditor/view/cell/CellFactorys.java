@@ -1,4 +1,4 @@
-package org.nojob.storyeditor.view;
+package org.nojob.storyeditor.view.cell;
 
 import javafx.scene.control.*;
 import javafx.scene.control.cell.CheckBoxTableCell;
@@ -8,6 +8,8 @@ import org.nojob.storyeditor.StoryEditor;
 import org.nojob.storyeditor.model.ActionItem;
 import org.nojob.storyeditor.model.Clue;
 import org.nojob.storyeditor.model.StoryEvent;
+
+import java.io.File;
 
 /**
  * Created by wanghe on 16/8/9.
@@ -37,6 +39,10 @@ public class CellFactorys {
         return list -> new ClueListCell();
     }
 
+    public static Callback<ListView<File>, ListCell<File>> soundCellForCombox() {
+        return list -> new FilenameListCell();
+    }
+
     public static class ButtonTableCell<S, T> extends TableCell<S, T>{
         @Override
         protected void updateItem(T item, boolean empty) {
@@ -52,7 +58,7 @@ public class CellFactorys {
                 delBtn.setOnAction(e -> {
                     if (rowItem instanceof StoryEvent) {
                         StoryEditor.Instance().getProject().getEventList().remove(rowItem);
-                    } else {
+                    } else if (rowItem instanceof  Clue){
                         StoryEditor.Instance().getProject().getClueList().remove(rowItem);
                     }
                 });
