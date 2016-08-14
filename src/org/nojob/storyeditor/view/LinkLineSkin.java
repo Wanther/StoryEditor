@@ -83,6 +83,10 @@ public class LinkLineSkin extends BehaviorSkinBase<LinkLine, BehaviorBase<LinkLi
             link();
         });
 
+        line.textProperty().addListener((observable, oldValue, newValue) -> {
+            draw();
+        });
+
         link();
     }
 

@@ -9,15 +9,25 @@ import javafx.fxml.JavaFXBuilderFactory;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.control.*;
+import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyCombination;
+import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.BorderPane;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.FileChooser;
 import org.nojob.storyeditor.StoryEditor;
 import org.nojob.storyeditor.exception.AppException;
+import org.nojob.storyeditor.model.ActionItem;
 import org.nojob.storyeditor.model.Project;
+import org.nojob.storyeditor.model.StoryAction;
 
 import java.io.*;
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipFile;
+import java.util.zip.ZipOutputStream;
 
 /**
  * Created by wanghe on 16/7/13.
@@ -44,6 +54,7 @@ public class MainController {
     @FXML private Button tbZoomIn;
     @FXML private Button tbZoomOut;
     @FXML private Button tbSearch;
+    @FXML private TextField tbSearchInput;
 
     @FXML private Node progressOverlay;
 
@@ -55,6 +66,12 @@ public class MainController {
             onProjectChanged(oldValue, newValue);
         });
         miSave.setAccelerator(KeyCombination.keyCombination("Ctrl+S"));
+
+        tbSearchInput.setOnKeyPressed((KeyEvent e) -> {
+            if (e.getCode() == KeyCode.ENTER) {
+                onSearch();
+            }
+        });
     }
 
     @FXML
@@ -90,6 +107,7 @@ public class MainController {
         saveProject(() -> {
             FileChooser fileChooser = new FileChooser();
             fileChooser.setTitle("选择导出目录");
+            fileChooser.setInitialFileName(StoryEditor.Instance().getProject().getRootDir().getName());
             fileChooser.getExtensionFilters().addAll(new FileChooser.ExtensionFilter("Story File", "*.story"));
             File selectedFile = fileChooser.showSaveDialog(mainLayout.getScene().getWindow());
             if (selectedFile != null) {
@@ -119,7 +137,11 @@ public class MainController {
 
     @FXML
     protected void onSearch() {
+        String searchString = tbSearchInput.getText();
 
+        if (projectController != null) {
+            projectController.onSearch(searchString);
+        }
     }
 
     @FXML
@@ -182,6 +204,7 @@ public class MainController {
         tbZoomIn.setDisable(canNotDoProjectOperate);
         tbZoomOut.setDisable(canNotDoProjectOperate);
         tbSearch.setDisable(canNotDoProjectOperate);
+        tbSearchInput.setDisable(canNotDoProjectOperate);
 
         if (newProject == null) {
             mainLayout.setCenter(null);
@@ -290,26 +313,33 @@ public class MainController {
         public ExportProjectTask(File exportFile) {
             this.exportFile = exportFile;
 
-            showProgressOverlay();
+            StoryEditor.Instance().getProject().setLocked(true);
         }
 
         @Override
         protected Void call() throws Exception {
             Project project = StoryEditor.Instance().getProject();
 
-            OutputStream out = null;
-            try {
-                String jsonResult = project.toJSONObject().toString();
-                out = new FileOutputStream(exportFile);
-                byte[] jsonByte = jsonResult.getBytes();
-                out.write(jsonByte, 0, jsonByte.length);
+            try(ZipOutputStream out = new ZipOutputStream(new FileOutputStream(exportFile))) {
+                out.putNextEntry(new ZipEntry("story_zh-CN.json"));
+                byte[] buffer = project.toJSONObject().toString().getBytes();
+                out.write(buffer, 0, buffer.length);
+                out.closeEntry();
 
-            } catch (IOException e) {
-                e.printStackTrace();
-            } finally {
-                if (out != null) {
-                    out.close();
+                File[] files = project.getSoundDir().listFiles((dir, name) -> name.endsWith(".mp3") || name.endsWith(".MP3"));
+                if (files != null) {
+                    for (File f : files) {
+                        out.putNextEntry(new ZipEntry("resources/audio/" + f.getName()));
+                        try(InputStream in = new FileInputStream(f)) {
+                            int len;
+                            while ((len = in.read(buffer)) != -1) {
+                                out.write(buffer, 0, len);
+                            }
+                        }
+                        out.closeEntry();
+                    }
                 }
+
             }
 
             return null;
@@ -317,13 +347,14 @@ public class MainController {
 
         @Override
         protected void failed() {
-            hideProgressOverlay();
+            StoryEditor.Instance().getProject().setLocked(false);
             StoryEditor.Instance().catchException(getException());
         }
 
         @Override
         protected void succeeded() {
-            hideProgressOverlay();
+            StoryEditor.Instance().getProject().setLocked(false);
+            new Alert(Alert.AlertType.INFORMATION, "导出成功").show();
         }
     }
 

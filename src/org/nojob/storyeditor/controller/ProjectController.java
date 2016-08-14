@@ -3,6 +3,7 @@ package org.nojob.storyeditor.controller;
 import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
+import javafx.concurrent.Task;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Point2D;
@@ -21,6 +22,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * Created by wanghe on 16/7/17.
@@ -73,7 +75,13 @@ public class ProjectController {
     }
 
     public void onSearch(String queryString) {
-
+        actionViewport.lookupAll(".searched").stream().forEach(actionNode -> {
+            actionNode.getStyleClass().remove("searched");
+        });
+        if (queryString == null || "".equals(queryString.trim())) {
+            return;
+        }
+        StoryEditor.Instance().async(new SearchTask(queryString));
     }
 
     protected void showActionDetail(ActionNode actionNode) {
@@ -163,18 +171,40 @@ public class ProjectController {
             return;
         }
 
-        Dialog<ActionLink> dialog = ActionLinkController.create(actionNode);
-        dialog.showAndWait().ifPresent(this::createLinkLine);
+        ActionLink link = new ActionLink();
+        link.setLinkFromId(actionNode.getAction().getId());
+        Dialog<ActionLink> dialog = ActionLinkController.create(link);
+        dialog.showAndWait().filter(response -> response != null).ifPresent(this::createLinkLine);
 
     }
 
-    protected void createLinkLine(ActionLink actionLink) {
-        StoryEditor.Instance().getProject().getActions().stream().filter(item -> item.getId() == actionLink.getLinkFromId()).forEach(item -> {
+    protected void showLinkDetail(ActionLink link) {
+        Dialog<ActionLink> dialog = ActionLinkController.create(link);
+        dialog.showAndWait().ifPresent(this::updateLinkLine);
+    }
+
+    protected void createLinkLine(ActionLink link) {
+        StoryEditor.Instance().getProject().getActions().stream().filter(item -> item.getId() == link.getLinkFromId()).findFirst().ifPresent(item -> {
             if (item.getLinkList().size() >= 2) {
                 StoryEditor.Instance().catchException(new AppException("该节点连接数超过上限"));
                 return;
             }
-            item.getLinkList().add(actionLink);
+
+            if (item.getLinkList().contains(link)) {
+                StoryEditor.Instance().catchException(new AppException("连接已存在"));
+                return;
+            }
+
+            item.getLinkList().add(link);
+        });
+    }
+
+    protected void updateLinkLine(ActionLink link) {
+        StoryEditor.Instance().getProject().getActions().stream().filter(item -> item.getId() == link.getLinkFromId()).findFirst().ifPresent(item -> {
+            item.getLinkList().stream().filter(lk -> lk.equals(link)).findFirst().ifPresent(lk -> {
+                lk.setText(link.getText());
+                lk.setFoundedClueId(link.getFoundedClueId());
+            });
         });
     }
 
@@ -233,6 +263,11 @@ public class ProjectController {
             action.getLinkList().forEach(link -> {
                 LinkLine line = LinkLine.create(link, actionViewport);
                 line.setContextMenu(buildLinkContextMenu(line));
+                line.setOnMouseClicked((MouseEvent e) -> {
+                    if (e.getClickCount() >= 2) {
+                        showLinkDetail(link);
+                    }
+                });
                 actionViewport.getItems().add(0, line);
             });
 
@@ -291,7 +326,7 @@ public class ProjectController {
                         line.setContextMenu(buildLinkContextMenu(line));
                         line.setOnMouseClicked((MouseEvent e) -> {
                             if (e.getClickCount() >= 2) {
-                                //TODO: shou link detail
+                                showLinkDetail(link);
                             }
                         });
                         actionViewport.getItems().add(0, line);
@@ -314,6 +349,63 @@ public class ProjectController {
                     });
                 }
             }
+        }
+    }
+
+    private class SearchTask extends Task<List<StoryAction>> {
+        private String searchString;
+
+        public SearchTask(String searchString) {
+            StoryEditor.Instance().getProject().setLocked(true);
+            this.searchString = searchString;
+        }
+
+        @Override
+        protected List<StoryAction> call() throws Exception {
+            return StoryEditor.Instance().getProject().getActions().stream().filter(action -> {
+                if (action.getKeyActionText() != null && action.getKeyActionText().contains(searchString)) {
+                    return true;
+                }
+
+                for (ActionItem item : action.getItemList()) {
+                    if (item.getText() != null && item.getText().contains(searchString)) {
+                        return true;
+                    }
+
+                    if (item.getEvent() != null && item.getEvent().getText().contains(searchString)) {
+                        return true;
+                    }
+
+                    if (item.getClue() != null && item.getClue().getText().contains(searchString)) {
+                        return true;
+                    }
+
+                    if (item.getSound() != null && item.getSound().contains(searchString)) {
+                        return true;
+                    }
+                }
+                return false;
+            }).collect(Collectors.toList());
+        }
+
+        @Override
+        protected void failed() {
+            StoryEditor.Instance().getProject().setLocked(false);
+            StoryEditor.Instance().catchException(getException());
+        }
+
+        @Override
+        protected void succeeded() {
+
+            List<StoryAction> actions = getValue();
+
+            if (actions != null) {
+                actions.stream().forEach(action -> {
+                    actionViewport.lookup("#" + ActionNode.ID_PREFIX + action.getId()).getStyleClass().add("searched");
+                });
+            }
+
+            StoryEditor.Instance().getProject().setLocked(false);
         }
     }
 }

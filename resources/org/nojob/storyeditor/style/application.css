@@ -13,3 +13,7 @@
 .selected {
     -fx-border-color: #ff0000;
 }
+
+.searched {
+    -fx-background-color: #ffff00;
+}

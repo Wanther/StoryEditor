@@ -26,7 +26,13 @@ public class LinkLine extends Control{
                 break;
             }
         }
-        return new LinkLine(from, to, link.getText(), foundedClue);
+        LinkLine line = new LinkLine(from, to, link.getText(), foundedClue);
+
+        link.textProperty().addListener((observable, oldValue, newValue) -> {
+            line.setText(newValue);
+        });
+
+        return line;
     }
 
     private ActionNode linkFrom;
@@ -73,16 +79,16 @@ public class LinkLine extends Control{
         this.foundedClue = foundedClue;
     }
 
-    public String getText() {
-        return text.get();
-    }
-
     public StringProperty textProperty() {
         return text;
     }
 
+    public String getText() {
+        return textProperty().get();
+    }
+
     public void setText(String text) {
-        this.text.set(text);
+        textProperty().set(text);
     }
 
     public double getCenterY() {

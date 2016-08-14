@@ -1,7 +1,11 @@
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
-<GridPane xmlns:fx="http://javafx.com/fxml" vgap="5">
+<?import org.nojob.storyeditor.view.cell.CellFactorys?>
+<?import org.nojob.storyeditor.view.cell.StoryActionListCell?>
+<?import org.nojob.storyeditor.view.cell.ClueListCell?>
+<GridPane xmlns:fx="http://javafx.com/fxml"
+          fx:controller="org.nojob.storyeditor.controller.ActionLinkController" vgap="5">
     <padding>
         <Insets top="5" right="5" bottom="5" left="5"/>
     </padding>
@@ -14,12 +18,26 @@
         <Label fx:id="id" GridPane.columnIndex="1" GridPane.rowIndex="0"/>
 
         <Label text="下一节点ID" GridPane.columnIndex="0" GridPane.rowIndex="1"/>
-        <TextField fx:id="linkId" GridPane.columnIndex="1" GridPane.rowIndex="1"/>
+        <ComboBox fx:id="linkId" GridPane.columnIndex="1" GridPane.rowIndex="1">
+            <cellFactory>
+                <CellFactorys fx:factory="actionCellForCombox"/>
+            </cellFactory>
+            <buttonCell>
+                <StoryActionListCell />
+            </buttonCell>
+        </ComboBox>
 
         <Label text="按钮文字" GridPane.columnIndex="0" GridPane.rowIndex="2"/>
         <TextField fx:id="linkText" GridPane.columnIndex="1" GridPane.rowIndex="2"/>
 
-        <Label text="找到的线索ID" GridPane.columnIndex="0" GridPane.rowIndex="3"/>
-        <TextField fx:id="foundedClueId" GridPane.columnIndex="1" GridPane.rowIndex="3"/>
+        <Label text="找到的线索" GridPane.columnIndex="0" GridPane.rowIndex="3"/>
+        <ComboBox fx:id="clueList" GridPane.columnIndex="1" GridPane.rowIndex="3">
+            <cellFactory>
+                <CellFactorys fx:factory="clueCellForCombox"/>
+            </cellFactory>
+            <buttonCell>
+                <ClueListCell />
+            </buttonCell>
+        </ComboBox>
     </children>
 </GridPane>

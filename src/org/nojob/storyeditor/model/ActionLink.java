@@ -1,11 +1,13 @@
 package org.nojob.storyeditor.model;
 
 import com.google.gson.JsonObject;
+import javafx.beans.property.SimpleStringProperty;
+import javafx.beans.property.StringProperty;
 
 /**
  * Created by wanghe on 16/7/28.
  */
-public class ActionLink {
+public class ActionLink implements Cloneable {
 
     public static ActionLink create(JsonObject json, int actionId) {
         ActionLink link = new ActionLink();
@@ -20,17 +22,24 @@ public class ActionLink {
 
     private int linkFromId;
     private int linkToId;
-    private String text;
+    private StringProperty text;
     private int foundedClueId;
 
     public ActionLink() {}
 
-    public String getText() {
+    public StringProperty textProperty() {
+        if (text == null) {
+            text = new SimpleStringProperty(this, "text");
+        }
         return text;
     }
 
+    public String getText() {
+        return textProperty().get();
+    }
+
     public void setText(String text) {
-        this.text = text;
+        textProperty().set(text);
     }
 
     public int getLinkFromId() {
@@ -82,5 +91,12 @@ public class ActionLink {
         json.addProperty("id", getLinkToId());
         json.addProperty("clue_found", getFoundedClueId());
         return json;
+    }
+
+    @Override
+    public ActionLink clone() throws CloneNotSupportedException {
+        ActionLink link = (ActionLink) super.clone();
+        link.text = new SimpleStringProperty(link, "text");
+        return link;
     }
 }

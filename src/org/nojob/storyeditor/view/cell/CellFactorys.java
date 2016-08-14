@@ -7,6 +7,7 @@ import javafx.util.Callback;
 import org.nojob.storyeditor.StoryEditor;
 import org.nojob.storyeditor.model.ActionItem;
 import org.nojob.storyeditor.model.Clue;
+import org.nojob.storyeditor.model.StoryAction;
 import org.nojob.storyeditor.model.StoryEvent;
 
 import java.io.File;
@@ -41,6 +42,10 @@ public class CellFactorys {
 
     public static Callback<ListView<File>, ListCell<File>> soundCellForCombox() {
         return list -> new FilenameListCell();
+    }
+
+    public static Callback<ListView<StoryAction>, ListCell<StoryAction>> actionCellForCombox() {
+        return list -> new StoryActionListCell();
     }
 
     public static class ButtonTableCell<S, T> extends TableCell<S, T>{

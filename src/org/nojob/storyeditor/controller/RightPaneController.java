@@ -1,11 +1,9 @@
 package org.nojob.storyeditor.controller;
 
+import javafx.collections.ListChangeListener;
 import javafx.concurrent.Task;
 import javafx.fxml.FXML;
-import javafx.scene.control.Button;
-import javafx.scene.control.TableColumn;
-import javafx.scene.control.TableView;
-import javafx.scene.control.TextField;
+import javafx.scene.control.*;
 import javafx.stage.FileChooser;
 import org.nojob.storyeditor.StoryEditor;
 import org.nojob.storyeditor.exception.AppException;
@@ -79,8 +77,65 @@ public class RightPaneController {
         });
 
         deleteSoundBtn.setOnAction(e -> {
-            File f = soundListView.getSelectionModel().getSelectedItem();
-            StoryEditor.Instance().async(new DeleteSoundTask(f));
+            new Alert(Alert.AlertType.CONFIRMATION, "确定删除?").showAndWait().filter(response -> response == ButtonType.OK).ifPresent(result -> {
+                File f = soundListView.getSelectionModel().getSelectedItem();
+                StoryEditor.Instance().async(new DeleteSoundTask(f));
+            });
+        });
+
+        StoryEditor.Instance().getProject().eventsProperty().addListener(new ListChangeListener<StoryEvent>() {
+            @Override
+            public void onChanged(Change<? extends StoryEvent> c) {
+                while (c.next()) {
+                    if (c.wasRemoved()) {
+                        c.getRemoved().forEach(e -> {
+                            StoryEditor.Instance().getProject().getActions().forEach(action -> {
+                                action.getItemList().stream().filter(actionItem -> actionItem.getEvent() != null && actionItem.getEvent().getId() == e.getId()).forEach(actionItem -> {
+                                    actionItem.setEvent(null);
+                                });
+                            });
+                        });
+                    }
+                }
+            }
+        });
+
+        StoryEditor.Instance().getProject().cluesProperty().addListener(new ListChangeListener<Clue>() {
+            @Override
+            public void onChanged(Change<? extends Clue> c) {
+                while (c.next()) {
+                    if (c.wasRemoved()) {
+                        c.getRemoved().forEach(clue -> {
+                            StoryEditor.Instance().getProject().getActions().forEach(action -> {
+                                action.getItemList().stream().filter(actionItem -> clue.equals(actionItem.getClue())).forEach(actionItem -> {
+                                    actionItem.setClue(null);
+                                });
+
+                                action.getLinkList().stream().filter(link -> link.getFoundedClueId() == clue.getId()).forEach(link -> {
+                                    link.setFoundedClueId(0);
+                                });
+                            });
+                        });
+                    }
+                }
+            }
+        });
+
+        StoryEditor.Instance().getProject().getSoundList().addListener(new ListChangeListener<File>() {
+            @Override
+            public void onChanged(Change<? extends File> c) {
+                while (c.next()) {
+                    if (c.wasRemoved()) {
+                        c.getRemoved().forEach(sound -> {
+                            StoryEditor.Instance().getProject().getActions().forEach(action -> {
+                                action.getItemList().stream().filter(actionItem -> sound.getName().equals(actionItem.getSound())).forEach(actionItem -> {
+                                    actionItem.setSound(null);
+                                });
+                            });
+                        });
+                    }
+                }
+            }
         });
     }
 

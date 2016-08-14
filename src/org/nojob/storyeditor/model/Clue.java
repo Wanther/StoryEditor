@@ -55,4 +55,20 @@ public class Clue {
     public JsonObject toSaveJSON() {
         return toJSONObject();
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        Clue clue = (Clue) o;
+
+        return id == clue.id;
+
+    }
+
+    @Override
+    public int hashCode() {
+        return id;
+    }
 }
