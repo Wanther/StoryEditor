@@ -88,6 +88,7 @@ public class ActionDetailController implements Callback<ButtonType, Map<String, 
             }
         });
 
+        keyActionName.setDisable(!action.isKeyAction());
         keyActionName.setText(action.getKeyActionText());
         keyActionName.textProperty().addListener((observable, oldValue, newValue) -> {
             modifiedMap.put("keyActionText", newValue);
@@ -95,12 +96,26 @@ public class ActionDetailController implements Callback<ButtonType, Map<String, 
 
         achievement.setText(action.getAchievement() + "");
         achievement.textProperty().addListener((observable, oldValue, newValue) -> {
-            modifiedMap.put("achievement", newValue);
+            int value = 0;
+            try {
+                value = Integer.parseInt(newValue);
+            } catch (Exception e) {
+
+            }
+
+            modifiedMap.put("achievement", value);
         });
 
         payAmount.setText(action.getPayAmount() + "");
         payAmount.textProperty().addListener((observable, oldValue, newValue) -> {
-            modifiedMap.put("payAmount", newValue);
+            int value = 0;
+            try {
+                value = Integer.parseInt(newValue);
+            } catch (Exception e) {
+
+            }
+
+            modifiedMap.put("payAmount", value);
         });
 
         bindItemList(action.getItemList());

@@ -1,5 +1,7 @@
 package org.nojob.storyeditor.controller;
 
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
@@ -14,11 +16,13 @@ import org.nojob.storyeditor.StoryEditor;
 import org.nojob.storyeditor.exception.AppException;
 import org.nojob.storyeditor.model.ActionItem;
 import org.nojob.storyeditor.model.Clue;
+import org.nojob.storyeditor.model.ConditionEvent;
 import org.nojob.storyeditor.model.StoryEvent;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -60,16 +64,23 @@ public class ActionItemController implements Callback<ButtonType, Map<String, Ob
         return dialog;
     }
 
+    private static final File EMPTY_SOUND = new File("");
+
     private Map<String, Object> modifiedMap = new HashMap<>();
 
     @FXML private TextField text;
     @FXML private CheckBox isBold;
-    @FXML private ChoiceBox<Integer> fontSize;
+    @FXML private ChoiceBox<String> fontSize;
     @FXML private ColorPicker fontColor;
     @FXML private TextField delay;
     @FXML private ComboBox<StoryEvent> eventList;
     @FXML private ComboBox<Clue> clueList;
     @FXML private ComboBox<File> soundList;
+    @FXML private TableView<ConditionEvent> conditionEvents;
+    @FXML private TableColumn<ConditionEvent, Boolean> conditionSelectedColumn;
+    @FXML private ToggleGroup conditionGroup;
+
+    private ObservableList<ConditionEvent> conditionEventList;
 
     public void initialize() {
 
@@ -81,8 +92,10 @@ public class ActionItemController implements Callback<ButtonType, Map<String, Ob
             modifiedMap.put("isBold", newValue);
         });
 
+        fontSize.setItems(ActionItem.FONT_SIZE);
+        fontSize.getSelectionModel().selectFirst();
         fontSize.getSelectionModel().selectedIndexProperty().addListener((observable, oldValue, newValue) -> {
-            modifiedMap.put("fontSize", newValue);
+            modifiedMap.put("fontSize", newValue.intValue());
         });
 
         fontColor.valueProperty().addListener((observable, oldValue, newValue) -> {
@@ -95,19 +108,51 @@ public class ActionItemController implements Callback<ButtonType, Map<String, Ob
             modifiedMap.put("delay", Long.valueOf(newValue));
         });
 
-        eventList.setItems(StoryEditor.Instance().getProject().eventsProperty());
+        ObservableList<StoryEvent> events = StoryEditor.Instance().getProject().eventsProperty().stream().collect(FXCollections::observableArrayList, List::add, List::addAll);
+        events.add(0, StoryEvent.EMPTY);
+        eventList.setItems(events);
+        eventList.setValue(StoryEvent.EMPTY);
         eventList.valueProperty().addListener((observable, oldValue, newValue) -> {
+            if (newValue == StoryEvent.EMPTY) {
+                newValue = null;
+            }
             modifiedMap.put("event", newValue);
         });
 
-        clueList.setItems(StoryEditor.Instance().getProject().cluesProperty());
+        ObservableList<Clue> clues = StoryEditor.Instance().getProject().cluesProperty().stream().collect(FXCollections::observableArrayList, List::add, List::addAll);
+        clues.add(0, Clue.EMPTY);
+        clueList.setItems(clues);
+        clueList.setValue(Clue.EMPTY);
         clueList.valueProperty().addListener((observable, oldValue, newValue) -> {
+            if (newValue == Clue.EMPTY) {
+                newValue = null;
+            }
             modifiedMap.put("clue", newValue);
         });
 
-        soundList.setItems(StoryEditor.Instance().getProject().getSoundList());
+        ObservableList<File> sounds = StoryEditor.Instance().getProject().getSoundList().stream().collect(FXCollections::observableArrayList, List::add, List::addAll);
+        sounds.add(0, EMPTY_SOUND);
+        soundList.setItems(sounds);
+        soundList.setValue(EMPTY_SOUND);
         soundList.valueProperty().addListener((observable, oldValue, newValue) -> {
-            modifiedMap.put("sound", newValue.getName());
+            modifiedMap.put("sound", newValue.getName().equals("") ? null : newValue.getName());
+        });
+
+        conditionEventList = StoryEditor.Instance().getProject().getEventList().stream().collect(FXCollections::observableArrayList,
+                (list, item) -> list.add(new ConditionEvent(item, false)), List::addAll);
+
+        conditionEvents.setItems(conditionEventList);
+        conditionEvents.setSelectionModel(null);
+
+        conditionGroup.selectedToggleProperty().addListener((observable, oldValue, newValue) -> {
+            switch((String)newValue.getUserData()) {
+                case "0":
+                case "1":
+                    conditionEvents.setVisible(true);
+                    break;
+                    default:
+                        conditionEvents.setVisible(false);
+            }
         });
     }
 
@@ -125,7 +170,7 @@ public class ActionItemController implements Callback<ButtonType, Map<String, Ob
         clueList.getSelectionModel().select(item.getClue());
 
         if (item.getSound() == null || "".equals(item.getSound())) {
-            soundList.setValue(null);
+            soundList.setValue(EMPTY_SOUND);
         } else {
             for (File sd : StoryEditor.Instance().getProject().getSoundList()) {
                 if (sd.getName().equals(item.getSound())) {
@@ -134,6 +179,17 @@ public class ActionItemController implements Callback<ButtonType, Map<String, Ob
                 }
             }
         }
+
+        if (item.getCondition() != null) {
+            conditionEventList.stream().filter(e -> item.getCondition().getEvents().contains(e)).forEach(e -> {
+                e.setSelected(true);
+            });
+            conditionEvents.refresh();
+        }
+
+        conditionSelectedColumn.setOnEditCommit(e -> {
+
+        });
     }
 
     @Override

@@ -1,7 +1,6 @@
 package org.nojob.storyeditor.controller;
 
 import javafx.application.Platform;
-import javafx.collections.ListChangeListener;
 import javafx.concurrent.Task;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -17,16 +16,10 @@ import javafx.stage.DirectoryChooser;
 import javafx.stage.FileChooser;
 import org.nojob.storyeditor.StoryEditor;
 import org.nojob.storyeditor.exception.AppException;
-import org.nojob.storyeditor.model.ActionItem;
 import org.nojob.storyeditor.model.Project;
-import org.nojob.storyeditor.model.StoryAction;
 
 import java.io.*;
-import java.util.Arrays;
-import java.util.List;
-import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
-import java.util.zip.ZipFile;
 import java.util.zip.ZipOutputStream;
 
 /**
@@ -108,7 +101,7 @@ public class MainController {
             FileChooser fileChooser = new FileChooser();
             fileChooser.setTitle("选择导出目录");
             fileChooser.setInitialFileName(StoryEditor.Instance().getProject().getRootDir().getName());
-            fileChooser.getExtensionFilters().addAll(new FileChooser.ExtensionFilter("Story File", "*.story"));
+            fileChooser.getExtensionFilters().addAll(new FileChooser.ExtensionFilter("Story File", "*.zip"));
             File selectedFile = fileChooser.showSaveDialog(mainLayout.getScene().getWindow());
             if (selectedFile != null) {
                 StoryEditor.Instance().async(new ExportProjectTask(selectedFile));

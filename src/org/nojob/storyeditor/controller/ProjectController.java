@@ -5,19 +5,20 @@ import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
 import javafx.fxml.FXML;
-import javafx.fxml.FXMLLoader;
 import javafx.geometry.Point2D;
 import javafx.scene.Node;
 import javafx.scene.control.*;
 import javafx.scene.input.MouseEvent;
 import org.nojob.storyeditor.StoryEditor;
 import org.nojob.storyeditor.exception.AppException;
-import org.nojob.storyeditor.model.*;
+import org.nojob.storyeditor.model.ActionItem;
+import org.nojob.storyeditor.model.ActionLink;
+import org.nojob.storyeditor.model.Project;
+import org.nojob.storyeditor.model.StoryAction;
 import org.nojob.storyeditor.view.ActionNode;
 import org.nojob.storyeditor.view.LinkLine;
 import org.nojob.storyeditor.view.Viewport;
 
-import java.io.IOException;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -173,13 +174,13 @@ public class ProjectController {
 
         ActionLink link = new ActionLink();
         link.setLinkFromId(actionNode.getAction().getId());
-        Dialog<ActionLink> dialog = ActionLinkController.create(link);
+        Dialog<ActionLink> dialog = ActionLinkController.create(link, actionViewport.getScene().getWindow());
         dialog.showAndWait().filter(response -> response != null).ifPresent(this::createLinkLine);
 
     }
 
     protected void showLinkDetail(ActionLink link) {
-        Dialog<ActionLink> dialog = ActionLinkController.create(link);
+        Dialog<ActionLink> dialog = ActionLinkController.create(link, actionViewport.getScene().getWindow());
         dialog.showAndWait().ifPresent(this::updateLinkLine);
     }
 

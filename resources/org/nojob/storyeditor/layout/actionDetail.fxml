@@ -59,11 +59,14 @@
                         <cellValueFactory>
                             <PropertyValueFactory property="isBold"/>
                         </cellValueFactory>
+                        <cellFactory>
+                            <CellFactorys fx:factory="checkBoxForTableCell"/>
+                        </cellFactory>
                     </TableColumn>
 
                     <TableColumn text="字号" sortable="false">
                         <cellValueFactory>
-                            <PropertyValueFactory property="fontSize"/>
+                            <PropertyValueFactory property="fontSizeText"/>
                         </cellValueFactory>
                     </TableColumn>
 

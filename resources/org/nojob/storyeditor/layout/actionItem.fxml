@@ -1,39 +1,34 @@
 <?import javafx.geometry.Insets?>
+<?import javafx.scene.control.cell.PropertyValueFactory?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
-<?import java.lang.String?>
-<?import org.nojob.storyeditor.view.cell.CellFactorys?>
-<?import org.nojob.storyeditor.view.cell.ClueListCell?>
-<?import org.nojob.storyeditor.view.cell.StoryEventListCell?>
-<?import org.nojob.storyeditor.view.cell.FilenameListCell?>
+<?import org.nojob.storyeditor.view.cell.*?>
 <GridPane xmlns:fx="http://javafx.com/fxml"
-          fx:controller="org.nojob.storyeditor.controller.ActionItemController" vgap="5" hgap="5">
+          fx:controller="org.nojob.storyeditor.controller.ActionItemController" vgap="5" hgap="5" prefWidth="800">
     <padding>
         <Insets top="5" right="5" bottom="5" left="5"/>
     </padding>
     <columnConstraints>
         <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="80.0" />
-        <ColumnConstraints hgrow="ALWAYS" minWidth="10.0" />
+        <ColumnConstraints hgrow="ALWAYS" minWidth="200.0" />
     </columnConstraints>
     <children>
         <Label text="文字" GridPane.columnIndex="0" GridPane.rowIndex="0"/>
-        <TextField fx:id="text" GridPane.columnIndex="1" GridPane.rowIndex="0"/>
+        <TextField fx:id="text" promptText="中文简体" GridPane.columnIndex="1" GridPane.rowIndex="0"/>
+        <TextField fx:id="textTW" promptText="中文繁体" GridPane.columnIndex="1" GridPane.rowIndex="1"/>
+        <TextField fx:id="textENG" promptText="英文" GridPane.columnIndex="1" GridPane.rowIndex="2"/>
 
-        <Label text="加粗" GridPane.columnIndex="0" GridPane.rowIndex="1"/>
-        <CheckBox fx:id="isBold" GridPane.columnIndex="1" GridPane.rowIndex="1"/>
+        <Label text="加粗" GridPane.columnIndex="0" GridPane.rowIndex="3"/>
+        <CheckBox fx:id="isBold" GridPane.columnIndex="1" GridPane.rowIndex="3"/>
 
-        <Label text="大小" GridPane.columnIndex="0" GridPane.rowIndex="2"/>
-        <ChoiceBox fx:id="fontSize" GridPane.columnIndex="1" GridPane.rowIndex="2">
-            <String fx:value="普通"/>
-            <String fx:value="小"/>
-            <String fx:value="大"/>
-        </ChoiceBox>
+        <Label text="大小" GridPane.columnIndex="0" GridPane.rowIndex="4"/>
+        <ChoiceBox fx:id="fontSize" GridPane.columnIndex="1" GridPane.rowIndex="4"/>
 
-        <Label text="颜色" GridPane.columnIndex="0" GridPane.rowIndex="3"/>
-        <ColorPicker fx:id="fontColor" GridPane.columnIndex="1" GridPane.rowIndex="3"/>
+        <Label text="颜色" GridPane.columnIndex="0" GridPane.rowIndex="5"/>
+        <ColorPicker fx:id="fontColor" GridPane.columnIndex="1" GridPane.rowIndex="5"/>
 
-        <Label text="触发事件" GridPane.columnIndex="0" GridPane.rowIndex="4"/>
-        <ComboBox fx:id="eventList" GridPane.columnIndex="1" GridPane.rowIndex="4">
+        <Label text="触发事件" GridPane.columnIndex="0" GridPane.rowIndex="6"/>
+        <ComboBox fx:id="eventList" GridPane.columnIndex="1" GridPane.rowIndex="6">
             <cellFactory>
                 <CellFactorys fx:factory="eventCellForCombox"/>
             </cellFactory>
@@ -42,8 +37,8 @@
             </buttonCell>
         </ComboBox>
 
-        <Label text="发现线索" GridPane.columnIndex="0" GridPane.rowIndex="5"/>
-        <ComboBox fx:id="clueList" GridPane.columnIndex="1" GridPane.rowIndex="5">
+        <Label text="发现线索" GridPane.columnIndex="0" GridPane.rowIndex="7"/>
+        <ComboBox fx:id="clueList" GridPane.columnIndex="1" GridPane.rowIndex="7">
             <cellFactory>
                 <CellFactorys fx:factory="clueCellForCombox"/>
             </cellFactory>
@@ -52,8 +47,8 @@
             </buttonCell>
         </ComboBox>
 
-        <Label text="音效" GridPane.columnIndex="0" GridPane.rowIndex="6"/>
-        <ComboBox fx:id="soundList" GridPane.columnIndex="1" GridPane.rowIndex="6">
+        <Label text="音效" GridPane.columnIndex="0" GridPane.rowIndex="8"/>
+        <ComboBox fx:id="soundList" GridPane.columnIndex="1" GridPane.rowIndex="8">
             <cellFactory>
                 <CellFactorys fx:factory="soundCellForCombox"/>
             </cellFactory>
@@ -62,8 +57,42 @@
             </buttonCell>
         </ComboBox>
 
-        <Label text="延时" GridPane.columnIndex="0" GridPane.rowIndex="7"/>
-        <TextField fx:id="delay" GridPane.columnIndex="1" GridPane.rowIndex="7"/>
+        <Label text="延时" GridPane.columnIndex="0" GridPane.rowIndex="9"/>
+        <TextField fx:id="delay" GridPane.columnIndex="1" GridPane.rowIndex="9"/>
+
+        <Label text="条件" GridPane.columnIndex="0" GridPane.rowIndex="10"/>
+        <VBox spacing="5" GridPane.columnIndex="1" GridPane.rowIndex="10">
+            <HBox spacing="5">
+                <fx:define>
+                    <ToggleGroup fx:id="conditionGroup"/>
+                </fx:define>
+                <RadioButton userData="-1" text="无" toggleGroup="$conditionGroup" selected="true"/>
+                <RadioButton userData="0" text="并且" toggleGroup="$conditionGroup"/>
+                <RadioButton userData="1" text="或者" toggleGroup="$conditionGroup"/>
+            </HBox>
+        </VBox>
+        <TableView fx:id="conditionEvents" prefHeight="250" editable="true" visible="false" GridPane.columnIndex="1" GridPane.rowIndex="11">
+            <columns>
+                <TableColumn fx:id="conditionSelectedColumn" text="选中" sortable="false" editable="true" maxWidth="40">
+                    <cellValueFactory>
+                        <PropertyValueFactory property="selected"/>
+                    </cellValueFactory>
+                    <cellFactory>
+                        <CellFactorys fx:factory="checkBoxForTableCell"/>
+                    </cellFactory>
+                </TableColumn>
+                <TableColumn text="ID" sortable="false" editable="false" maxWidth="40">
+                    <cellValueFactory>
+                        <PropertyValueFactory property="id"/>
+                    </cellValueFactory>
+                </TableColumn>
+                <TableColumn text="描述" sortable="false" editable="true" minWidth="200">
+                    <cellValueFactory>
+                        <PropertyValueFactory property="text"/>
+                    </cellValueFactory>
+                </TableColumn>
+            </columns>
+        </TableView>
 
     </children>
 </GridPane>

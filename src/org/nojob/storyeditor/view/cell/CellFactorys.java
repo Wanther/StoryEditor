@@ -17,15 +17,15 @@ import java.io.File;
  */
 public class CellFactorys {
     public static <S> Callback<TableColumn<S,String>, TableCell<S,String>> buttonForTableCell() {
-        return list -> new ButtonTableCell<S, String>();
+        return list -> new ButtonTableCell<>();
     }
 
     public static <S> Callback<TableColumn<S,String>, TableCell<S,String>> colorPickerForTabelCell() {
-        return list -> new ColorPickerTableCell<S, String>();
+        return list -> new ColorPickerTableCell<>();
     }
 
-    public static <S> Callback<TableColumn<S,Boolean>, TableCell<S,Boolean>> checkBoxForTableCell(TableColumn column) {
-        return CheckBoxTableCell.forTableColumn(column);
+    public static <S> Callback<TableColumn<S,Boolean>, TableCell<S,Boolean>> checkBoxForTableCell() {
+        return CheckBoxTableCell.forTableColumn((TableColumn<S, Boolean>) null);
     }
 
     public static Callback<TableColumn<ActionItem,String>, TableCell<ActionItem,String>> actionItemTextForTableCell() {
@@ -58,13 +58,16 @@ public class CellFactorys {
             S rowItem = row == null ? null : (S) row.getItem();
 
             if (!empty && rowItem != null) {
-                Button delBtn = new Button("X");
-                delBtn.getStyleClass().add("button-small");
+                Hyperlink delBtn = new Hyperlink("X");
                 delBtn.setOnAction(e -> {
                     if (rowItem instanceof StoryEvent) {
-                        StoryEditor.Instance().getProject().getEventList().remove(rowItem);
+                        new Alert(Alert.AlertType.CONFIRMATION, "确认删除?").showAndWait().filter(response -> response == ButtonType.OK).ifPresent(response -> {
+                            StoryEditor.Instance().getProject().getEventList().remove(rowItem);
+                        });
                     } else if (rowItem instanceof  Clue){
-                        StoryEditor.Instance().getProject().getClueList().remove(rowItem);
+                        new Alert(Alert.AlertType.CONFIRMATION, "确认删除?").showAndWait().filter(response -> response == ButtonType.OK).ifPresent(response -> {
+                            StoryEditor.Instance().getProject().getClueList().remove(rowItem);
+                        });
                     }
                 });
                 setGraphic(delBtn);

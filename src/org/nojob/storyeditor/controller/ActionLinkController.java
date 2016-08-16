@@ -8,6 +8,7 @@ import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.fxml.JavaFXBuilderFactory;
 import javafx.scene.control.*;
+import javafx.stage.Window;
 import javafx.util.Callback;
 import org.nojob.storyeditor.StoryEditor;
 import org.nojob.storyeditor.model.ActionLink;
@@ -21,8 +22,9 @@ import java.util.List;
  * Created by wanghe on 16/8/14.
  */
 public class ActionLinkController implements Callback<ButtonType, ActionLink>, EventHandler<ActionEvent> {
-    public static Dialog<ActionLink> create(ActionLink link) {
+    public static Dialog<ActionLink> create(ActionLink link, Window owner) {
         Dialog<ActionLink> dialog = new Dialog<>();
+        dialog.initOwner(owner);
         dialog.setTitle("创建连接");
 
         DialogPane createLinkPane = new DialogPane();
@@ -86,7 +88,9 @@ public class ActionLinkController implements Callback<ButtonType, ActionLink>, E
         }
 
         ObservableList<Clue> clues = StoryEditor.Instance().getProject().getClueList().stream().collect(FXCollections::observableArrayList, List::add, List::addAll);
+        clues.add(0, Clue.EMPTY);
         clueList.setItems(clues);
+        clueList.setValue(Clue.EMPTY);
 
         StoryEditor.Instance().getProject().getClueList().stream().filter(clue -> clue.getId() == link.getFoundedClueId()).findFirst().ifPresent(clueList::setValue);
 

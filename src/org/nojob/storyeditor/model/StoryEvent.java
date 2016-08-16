@@ -25,6 +25,8 @@ public class StoryEvent {
         return event;
     }
 
+    public static StoryEvent EMPTY = new StoryEvent();
+
     private IntegerProperty id;
     private StringProperty text;
 

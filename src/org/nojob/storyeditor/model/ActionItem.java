@@ -4,11 +4,21 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonNull;
 import com.google.gson.JsonObject;
 import javafx.beans.property.*;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 
 /**
  * Created by wanghe on 16/7/17.
  */
 public class ActionItem implements Cloneable {
+
+    public static ObservableList<String> FONT_SIZE = FXCollections.observableArrayList();
+
+    static {
+        FONT_SIZE.add("普通");
+        FONT_SIZE.add("小");
+        FONT_SIZE.add("大");
+    }
 
     public static ActionItem create(JsonObject json, Project project) {
         ActionItem item = new ActionItem();
@@ -63,6 +73,7 @@ public class ActionItem implements Cloneable {
     private ObjectProperty<Clue> clue;
     private ObjectProperty<StoryEvent> event;
     private StringProperty sound;
+    private ObjectProperty<ItemCondition> condition;
 
     public ActionItem(){}
 
@@ -141,6 +152,10 @@ public class ActionItem implements Cloneable {
         fontSizeProperty().set(fontSize);
     }
 
+    public String getFontSizeText() {
+        return FONT_SIZE.get(getFontSize());
+    }
+
     public LongProperty delayProperty() {
         if (delay == null) {
             delay = new SimpleLongProperty(this, "delay");
@@ -201,6 +216,21 @@ public class ActionItem implements Cloneable {
         soundProperty().set(sound);
     }
 
+    public ObjectProperty<ItemCondition> conditionProperty() {
+        if (condition == null) {
+            condition = new SimpleObjectProperty<>(this, "condition");
+        }
+        return condition;
+    }
+
+    public ItemCondition getCondition() {
+        return conditionProperty().get();
+    }
+
+    public void setCondition(ItemCondition condition) {
+        conditionProperty().set(condition);
+    }
+
     @Override
     public ActionItem clone() {
         ActionItem item = new ActionItem();
@@ -213,6 +243,7 @@ public class ActionItem implements Cloneable {
         item.setEvent(getEvent());
         item.setSound(getSound());
         item.setDelay(getDelay());
+        item.setCondition(getCondition() == null ? null : getCondition().clone());
 
         return item;
     }
@@ -266,26 +297,5 @@ public class ActionItem implements Cloneable {
             result += Integer.parseInt(value, 16);
         }
         return result;
-    }
-
-    public static class Condition{
-        private int logic;
-        private int eventId;
-
-        public int getLogic() {
-            return logic;
-        }
-
-        public void setLogic(int logic) {
-            this.logic = logic;
-        }
-
-        public int getEventId() {
-            return eventId;
-        }
-
-        public void setEventId(int eventId) {
-            this.eventId = eventId;
-        }
     }
 }

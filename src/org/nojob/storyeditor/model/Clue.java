@@ -24,6 +24,8 @@ public class Clue {
         return clue;
     }
 
+    public static Clue EMPTY = new Clue();
+
     private int id;
     private String text;
 

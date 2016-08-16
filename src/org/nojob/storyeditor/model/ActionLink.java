@@ -96,7 +96,7 @@ public class ActionLink implements Cloneable {
     @Override
     public ActionLink clone() throws CloneNotSupportedException {
         ActionLink link = (ActionLink) super.clone();
-        link.text = new SimpleStringProperty(link, "text");
+        link.text = new SimpleStringProperty(link, "text", getText());
         return link;
     }
 }
