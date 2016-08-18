@@ -1,15 +1,18 @@
 package org.nojob.storyeditor.model;
 
+import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.SimpleBooleanProperty;
+
 /**
  * Created by wanghe on 16/8/16.
  */
 public class ConditionEvent {
     private StoryEvent event;
-    private boolean selected;
+    private BooleanProperty selected;
 
     public ConditionEvent(StoryEvent event, boolean selected) {
         this.event = event;
-        this.selected = selected;
+        selectedProperty().set(selected);
     }
 
     public StoryEvent getEvent() {
@@ -20,12 +23,19 @@ public class ConditionEvent {
         this.event = event;
     }
 
-    public boolean isSelected() {
+    public BooleanProperty selectedProperty() {
+        if (selected == null) {
+            selected = new SimpleBooleanProperty(this, "selected");
+        }
         return selected;
     }
 
+    public boolean isSelected() {
+        return selectedProperty().get();
+    }
+
     public void setSelected(boolean selected) {
-        this.selected = selected;
+        selectedProperty().set(selected);
     }
 
     public String getText() {
@@ -34,5 +44,21 @@ public class ConditionEvent {
 
     public int getId() {
         return event.getId();
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        ConditionEvent that = (ConditionEvent) o;
+
+        return event != null ? event.equals(that.event) : that.event == null;
+
+    }
+
+    @Override
+    public int hashCode() {
+        return event != null ? event.hashCode() : 0;
     }
 }

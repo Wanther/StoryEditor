@@ -1,7 +1,6 @@
 package org.nojob.storyeditor.model;
 
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
+import com.oracle.javafx.jmx.json.JSONDocument;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleStringProperty;
@@ -12,16 +11,14 @@ import javafx.beans.property.StringProperty;
  */
 public class StoryEvent {
 
-    public static StoryEvent create(JsonElement json) {
-        if (json.isJsonNull()) {
+    public static StoryEvent create(JSONDocument json) {
+        if (json == null) {
             return null;
         }
 
-        JsonObject obj = (JsonObject)json;
-
         StoryEvent event = new StoryEvent();
-        event.setId(obj.get("id").getAsInt());
-        event.setText(obj.get("text").getAsString());
+        event.setId(json.getNumber("id").intValue());
+        event.setText(json.getString("text"));
         return event;
     }
 
@@ -69,23 +66,19 @@ public class StoryEvent {
 
         StoryEvent event = (StoryEvent) o;
 
-        return id != null ? id.equals(event.id) : event.id == null;
+        return getId() == event.getId();
 
     }
 
     @Override
     public int hashCode() {
-        return id != null ? id.hashCode() : 0;
+        return getClass().hashCode() + getId();
     }
 
-    public JsonObject toJSONObject() {
-        JsonObject json = new JsonObject();
-        json.addProperty("id", getId());
-        json.addProperty("text", getText());
+    public JSONDocument toSaveJSON(int type) {
+        JSONDocument json = JSONDocument.createObject();
+        json.setNumber("id", getId());
+        json.setString("text", getText());
         return json;
-    }
-
-    public JsonObject toSaveJSON() {
-        return toJSONObject();
     }
 }

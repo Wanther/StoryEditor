@@ -1,24 +1,42 @@
 package org.nojob.storyeditor.model;
 
-import com.google.gson.Gson;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
-import com.google.gson.stream.JsonReader;
+import com.oracle.javafx.jmx.json.JSONDocument;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
+import javafx.scene.text.Font;
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.InputStreamReader;
+import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
  * Created by wanghe on 16/7/17.
  */
 public class Project {
+
+    public static final ObservableList<String> FONT_SIZE_DESC = FXCollections.observableArrayList();
+    public static final List<Double> FONT_SIZE = new ArrayList<>();
+
+    public static final int ALL = -1;
+    public static final int ZH_CN = 0;
+    public static final int ZH_TW = 1;
+    public static final int ENG = 2;
+
+    static {
+        FONT_SIZE_DESC.add("普通");
+        FONT_SIZE_DESC.add("小");
+        FONT_SIZE_DESC.add("大");
+
+        FONT_SIZE.add(Font.getDefault().getSize());
+        FONT_SIZE.add(FONT_SIZE.get(0) - 4);
+        FONT_SIZE.add(FONT_SIZE.get(0) + 4);
+    }
+
+
 
     public static final String PROJECT_FILE = ".storyEditor";
     public static final String RESOURCE_DIR = "resources";
@@ -32,70 +50,53 @@ public class Project {
         return project;
     }
 
-    public static Project open(File rootDir) throws Exception {
-        Project project = null;
-        File projectFile = new File(rootDir, Project.PROJECT_CONTENT);
-        if (!projectFile.exists()) {
-            project = Project.create(rootDir);
-        } else {
-            JsonReader reader = null;
-            try {
-                reader = new JsonReader(new InputStreamReader(new FileInputStream(projectFile)));
-                Gson gson = new Gson();
+    public static Project create(File rootDir, JSONDocument doc) throws IOException{
+        Project project = new Project();
+        project.setRootDir(rootDir);
 
-                project = new Project();
-                project.setRootDir(rootDir);
-                project.init();
+        project.setCurrentId(doc.getNumber("actionId").intValue());
+        project.setEventId(doc.getNumber("eventId").intValue());
+        project.setItemId(doc.getNumber("itemId").intValue());
+        project.setClueId(doc.getNumber("clueId").intValue());
 
-                JsonObject projectJson = gson.fromJson(reader, JsonObject.class);
-
-                project.currentId = projectJson.get("actionId").getAsInt();
-                project.currentItemId = projectJson.get("itemId").getAsInt();
-                project.currentEventId = projectJson.get("eventId").getAsInt();
-                project.currentClueId = projectJson.get("clueId").getAsInt();
-
-                JsonArray array = projectJson.getAsJsonArray("events");
-
-                if (array != null) {
-                    for (int i = 0, size = array.size(); i < size; i++) {
-                        JsonObject json = (JsonObject) array.get(i);
-                        StoryEvent event = StoryEvent.create(json);
-                        project.getEventList().add(event);
-                    }
+        List<Object> objects = doc.getList("events");
+        if (objects != null && !objects.isEmpty()) {
+            objects.stream().collect(project::eventsProperty, (list, item) -> {
+                StoryEvent event = StoryEvent.create((JSONDocument)item);
+                if (event != null) {
+                    list.add(event);
                 }
+            }, List::addAll);
+        }
 
-                array = projectJson.getAsJsonArray("clues");
-                if (array != null) {
-                    for (int i = 0, size = array.size(); i < size; i++) {
-                        JsonObject json = (JsonObject) array.get(i);
-                        Clue clue = Clue.create(json);
-                        project.getClueList().add(clue);
-                    }
+        objects = doc.getList("clues");
+        if (objects != null && !objects.isEmpty()) {
+            objects.stream().collect(project::cluesProperty, (list, item) -> {
+                Clue clue = Clue.create((JSONDocument)item);
+                if (clue != null) {
+                    list.add(clue);
                 }
+            }, List::addAll);
+        }
 
-                array = projectJson.getAsJsonArray("node");
-                if (array != null) {
-                    for (int i = 0, size = array.size(); i < size; i++) {
-                        JsonObject json = (JsonObject)array.get(i);
-                        StoryAction action = StoryAction.create(json, project);
-                        project.getActions().add(action);
-                    }
-                }
-
-                File soundDir = project.getSoundDir();
-                File[] soundFiles = soundDir.listFiles((dir, name) -> name.endsWith(".mp3") || name.endsWith(".MP3"));
-                if (soundFiles != null) {
-                    for (File soundFile : soundFiles) {
-                        project.getSoundList().add(soundFile);
-                    }
-                }
-
-            } finally {
-                if (reader != null) {
-                    reader.close();
-                }
+        File soundDir = project.getSoundDir();
+        File[] soundFiles = soundDir.listFiles((dir, name) -> name.endsWith(".mp3") || name.endsWith(".MP3"));
+        if (soundFiles != null) {
+            for (File soundFile : soundFiles) {
+                project.getSoundList().add(soundFile);
             }
         }
+
+        objects = doc.getList("node");
+        if (objects != null && !objects.isEmpty()) {
+            objects.stream().collect(project::actionsProperty, (list, item) -> {
+                StoryAction action = StoryAction.create((JSONDocument)item, project);
+                if (action != null) {
+                    list.add(action);
+                }
+            }, List::addAll);
+        }
+
         return project;
     }
 
@@ -219,6 +220,34 @@ public class Project {
         return currentId;
     }
 
+    public int getEventID() {
+        return currentEventId;
+    }
+
+    public int getClueID() {
+        return currentClueId;
+    }
+
+    public int getItemID() {
+        return currentItemId;
+    }
+
+    public void setCurrentId(int currentId) {
+        this.currentId = currentId;
+    }
+
+    public void setEventId(int currentEventId) {
+        this.currentEventId = currentEventId;
+    }
+
+    public void setClueId(int currentClueId) {
+        this.currentClueId = currentClueId;
+    }
+
+    public void setItemId(int currentItemId) {
+        this.currentItemId = currentItemId;
+    }
+
     public File getResDir() {
         return new File(rootDir, RESOURCE_DIR);
     }
@@ -249,62 +278,63 @@ public class Project {
         return isLockedProperty().get();
     }
 
-    public JsonObject toJSONObject() {
-        JsonObject project = new JsonObject();
-        JsonArray eventArray = new JsonArray();
-        if (events != null && !events.isEmpty()) {
-            for (StoryEvent event : events) {
-                eventArray.add(event.toJSONObject());
+    public StoryAction findActionById(int id) {
+        for (StoryAction action : actionsProperty()) {
+            if (action.getId() == id) {
+                return action;
             }
         }
-
-        project.add("events", eventArray);
-
-        JsonArray nodeArray = new JsonArray();
-        if (actions != null && !actions.isEmpty()) {
-            for (StoryAction action : actions) {
-                nodeArray.add(action.toJSONObject());
-            }
-        }
-
-        project.add("node", nodeArray);
-
-        return project;
+        return null;
     }
 
-    public JsonObject toSaveJSON() {
-        JsonObject project = new JsonObject();
-        project.addProperty("actionId", currentId);
-        project.addProperty("itemId", currentItemId);
-        project.addProperty("eventId", currentEventId);
-        project.addProperty("clueId", currentClueId);
+    public StoryEvent findEventById(int id) {
+        for (StoryEvent event : eventsProperty()) {
+            if (event.getId() == id) {
+                return event;
+            }
+        }
+        return null;
+    }
 
-        JsonArray eventArray = new JsonArray();
+    public JSONDocument toSaveJSON(int type) {
+        JSONDocument project = JSONDocument.createObject();
+
+        if (type == Project.ALL) {
+            project.setNumber("actionId", currentId);
+            project.setNumber("itemId", currentItemId);
+            project.setNumber("eventId", currentEventId);
+            project.setNumber("clueId", currentClueId);
+        }
+
+        JSONDocument array = null;
         if (events != null && !events.isEmpty()) {
+            array = JSONDocument.createArray();
             for (StoryEvent event : events) {
-                eventArray.add(event.toJSONObject());
+                array.array().add(event.toSaveJSON(type));
             }
         }
 
-        project.add("events", eventArray);
+        project.set("events", array);
 
-        JsonArray clueArray = new JsonArray();
+        array = null;
         if (clues != null && !clues.isEmpty()) {
+            array = JSONDocument.createArray();
             for (Clue clue : clues) {
-                clueArray.add(clue.toSaveJSON());
+                array.array().add(clue.toSaveJSON(type));
             }
         }
 
-        project.add("clues", clueArray);
+        project.set("clues", array);
 
-        JsonArray nodeArray = new JsonArray();
+        array = null;
         if (actions != null && !actions.isEmpty()) {
+            array = JSONDocument.createArray();
             for (StoryAction action : actions) {
-                nodeArray.add(action.toSaveJSON());
+                array.array().add(action.toSaveJSON(type));
             }
         }
 
-        project.add("node", nodeArray);
+        project.set("node", array);
 
         return project;
     }

@@ -14,6 +14,7 @@ import org.nojob.storyeditor.model.Clue;
  * Created by wanghe on 16/8/7.
  */
 public class LinkLine extends Control{
+    public static final String ID_PREFIX = "link_";
 
     public static LinkLine create(ActionLink link, Parent parent) {
         ActionNode from = (ActionNode)parent.lookup("#" + ActionNode.ID_PREFIX + link.getLinkFromId());
@@ -27,6 +28,7 @@ public class LinkLine extends Control{
             }
         }
         LinkLine line = new LinkLine(from, to, link.getText(), foundedClue);
+        line.setId(ID_PREFIX + from.getAction().getId() + "_" + to.getAction().getId());
 
         link.textProperty().addListener((observable, oldValue, newValue) -> {
             line.setText(newValue);

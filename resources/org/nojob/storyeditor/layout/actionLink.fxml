@@ -5,7 +5,7 @@
 <?import org.nojob.storyeditor.view.cell.StoryActionListCell?>
 <?import org.nojob.storyeditor.view.cell.ClueListCell?>
 <GridPane xmlns:fx="http://javafx.com/fxml"
-          fx:controller="org.nojob.storyeditor.controller.ActionLinkController" vgap="5">
+          fx:controller="org.nojob.storyeditor.controller.ActionLinkController" vgap="5" prefWidth="480">
     <padding>
         <Insets top="5" right="5" bottom="5" left="5"/>
     </padding>
@@ -28,10 +28,12 @@
         </ComboBox>
 
         <Label text="按钮文字" GridPane.columnIndex="0" GridPane.rowIndex="2"/>
-        <TextField fx:id="linkText" GridPane.columnIndex="1" GridPane.rowIndex="2"/>
+        <TextField fx:id="linkText" promptText="中文简体" GridPane.columnIndex="1" GridPane.rowIndex="2"/>
+        <TextField fx:id="linkTextTW" promptText="中文繁体" GridPane.columnIndex="1" GridPane.rowIndex="3"/>
+        <TextField fx:id="linkTextENG" promptText="English" GridPane.columnIndex="1" GridPane.rowIndex="4"/>
 
-        <Label text="找到的线索" GridPane.columnIndex="0" GridPane.rowIndex="3"/>
-        <ComboBox fx:id="clueList" GridPane.columnIndex="1" GridPane.rowIndex="3">
+        <Label text="找到的线索" GridPane.columnIndex="0" GridPane.rowIndex="5"/>
+        <ComboBox fx:id="clueList" GridPane.columnIndex="1" GridPane.rowIndex="5">
             <cellFactory>
                 <CellFactorys fx:factory="clueCellForCombox"/>
             </cellFactory>

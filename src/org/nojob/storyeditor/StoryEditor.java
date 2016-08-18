@@ -8,6 +8,7 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
+import javafx.scene.image.Image;
 import javafx.stage.Stage;
 import org.nojob.storyeditor.model.Project;
 
@@ -63,6 +64,7 @@ public class StoryEditor extends Application {
         Parent root = FXMLLoader.load(getClass().getResource("layout/main.fxml"));
 
         primaryStage.setTitle("Story Editor");
+        primaryStage.getIcons().add(new Image(getClass().getResourceAsStream("images/icon_app.png")));
         primaryStage.setScene(new Scene(root, 1024, 768));
         //primaryStage.setMaximized(true);
         primaryStage.show();

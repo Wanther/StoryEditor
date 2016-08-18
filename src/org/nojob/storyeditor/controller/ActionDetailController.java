@@ -1,7 +1,5 @@
 package org.nojob.storyeditor.controller;
 
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
@@ -14,24 +12,20 @@ import javafx.stage.Window;
 import javafx.util.Callback;
 import org.nojob.storyeditor.StoryEditor;
 import org.nojob.storyeditor.model.ActionItem;
-import org.nojob.storyeditor.model.Clue;
 import org.nojob.storyeditor.model.StoryAction;
-import org.nojob.storyeditor.model.StoryEvent;
 
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 /**
  * Created by wanghe on 16/7/28.
  */
-public class ActionDetailController implements Callback<ButtonType, Map<String, Object>>, EventHandler<ActionEvent> {
+public class ActionDetailController implements Callback<ButtonType, StoryAction>, EventHandler<ActionEvent> {
 
-    public static Dialog<Map<String, Object>> createDialog(StoryAction action, Window owner) {
-        Dialog<Map<String, Object>> dialog = new Dialog<>();
+    public static Dialog<StoryAction> createDialog(StoryAction action, Window owner) {
+        Dialog<StoryAction> dialog = new Dialog<>();
         dialog.initOwner(owner);
+        dialog.setTitle("节点");
         dialog.setResizable(true);
 
         FXMLLoader loader = new FXMLLoader();
@@ -45,7 +39,7 @@ public class ActionDetailController implements Callback<ButtonType, Map<String, 
         }
 
         ActionDetailController controller = loader.getController();
-        controller.bind(action);
+        controller.initialize(action);
 
         DialogPane dialogPane = new DialogPane();
         dialogPane.setContent(actionDetailPane);
@@ -65,33 +59,57 @@ public class ActionDetailController implements Callback<ButtonType, Map<String, 
     @FXML private Label actionId;
     @FXML private CheckBox isKeyAction;
     @FXML private TextField keyActionName;
+    @FXML private TextField keyActionNameTW;
+    @FXML private TextField keyActionNameENG;
     @FXML private TextField achievement;
     @FXML private TextField payAmount;
     @FXML private TableView<ActionItem> itemListView;
     @FXML private Button itemEditBtn;
     @FXML private Button itemDeleteBtn;
 
-    private Map<String, Object> modifiedMap = new HashMap<>();
+    private StoryAction editingAction;
 
-    public void bind(StoryAction action) {
-        actionId.setText(action.getId() + "");
-        modifiedMap.put("id", action.getId());
+    public void initialize(StoryAction action) {
+
+        editingAction = action.clone();
+
+        actionId.setText(editingAction.getId() + "");
 
         isKeyAction.setSelected(action.isKeyAction());
         isKeyAction.selectedProperty().addListener((observable, oldValue, newValue) -> {
-            modifiedMap.put("isKeyAction", newValue);
+            editingAction.setKeyAction(newValue);
             if (newValue) {
                 keyActionName.setDisable(false);
+                keyActionNameTW.setDisable(false);
+                keyActionNameENG.setDisable(false);
             } else {
                 keyActionName.setText(null);
                 keyActionName.setDisable(true);
+
+                keyActionNameTW.setText(null);
+                keyActionNameTW.setDisable(true);
+
+                keyActionNameENG.setText(null);
+                keyActionNameENG.setDisable(true);
             }
         });
 
         keyActionName.setDisable(!action.isKeyAction());
         keyActionName.setText(action.getKeyActionText());
         keyActionName.textProperty().addListener((observable, oldValue, newValue) -> {
-            modifiedMap.put("keyActionText", newValue);
+            editingAction.setKeyActionText(newValue);
+        });
+
+        keyActionNameTW.setDisable(!action.isKeyAction());
+        keyActionNameTW.setText(action.getKeyActionTextTW());
+        keyActionNameTW.textProperty().addListener((observable, oldValue, newValue) -> {
+            editingAction.setKeyActionTextTW(newValue);
+        });
+
+        keyActionNameENG.setDisable(!action.isKeyAction());
+        keyActionNameENG.setText(action.getKeyActionTextENG());
+        keyActionNameENG.textProperty().addListener((observable, oldValue, newValue) -> {
+            editingAction.setKeyActionTextENG(newValue);
         });
 
         achievement.setText(action.getAchievement() + "");
@@ -103,10 +121,10 @@ public class ActionDetailController implements Callback<ButtonType, Map<String, 
 
             }
 
-            modifiedMap.put("achievement", value);
+            editingAction.setAchievement(value);
         });
 
-        payAmount.setText(action.getPayAmount() + "");
+        payAmount.setText(editingAction.getPayAmount() + "");
         payAmount.textProperty().addListener((observable, oldValue, newValue) -> {
             int value = 0;
             try {
@@ -115,28 +133,15 @@ public class ActionDetailController implements Callback<ButtonType, Map<String, 
 
             }
 
-            modifiedMap.put("payAmount", value);
+            editingAction.setPayAmount(value);
         });
 
-        bindItemList(action.getItemList());
-    }
-
-    protected void bindItemList(ObservableList<ActionItem> itemList) {
-        ObservableList<ActionItem> items = FXCollections.observableArrayList();
-        if (itemList != null && !itemList.isEmpty()) {
-            for (ActionItem item : itemList) {
-                items.add(item.clone());
-            }
-        }
-        itemListView.setItems(items);
+        itemListView.setItems(editingAction.getItemList());
 
         itemListView.getSelectionModel().selectedIndexProperty().addListener((observable, oldValue, newValue) -> {
-            if (newValue.intValue() >= 0) {
-                itemDeleteBtn.setDisable(false);
-                itemEditBtn.setDisable(false);
-            }
+            itemDeleteBtn.setDisable(newValue.intValue() < 0);
+            itemEditBtn.setDisable(newValue.intValue() < 0);
         });
-
     }
 
     @Override
@@ -146,93 +151,47 @@ public class ActionDetailController implements Callback<ButtonType, Map<String, 
     }
 
     @Override
-    public Map<String, Object> call(ButtonType param) {
+    public StoryAction call(ButtonType param) {
         if (param == ButtonType.FINISH) {
-            return modifiedMap;
+            return editingAction;
         }
         return null;
     }
 
     @FXML
     protected void onAddItem() {
-        Dialog<Map<String, Object>> dialog = ActionItemController.createDialog(null, root.getScene().getWindow());
-        dialog.showAndWait().ifPresent(response -> {
-            saveOrEdit(response);
-        });
+        ActionItemController.createDialog(ActionItem.create(StoryEditor.Instance().getProject().nextItemId()), root.getScene().getWindow())
+                .showAndWait().ifPresent(this::saveOrEditItem);
     }
 
     @FXML
     protected void onEditItem() {
         ActionItem selectedItem = itemListView.getSelectionModel().getSelectedItem();
-        Dialog<Map<String, Object>> dialog = ActionItemController.createDialog(selectedItem, root.getScene().getWindow());
-        dialog.showAndWait().ifPresent(response -> {
-            saveOrEdit(response);
-        });
+        ActionItemController.createDialog(selectedItem, root.getScene().getWindow())
+                .showAndWait().ifPresent(this::saveOrEditItem);
     }
 
     @FXML
     protected void onDeleteItem() {
         new Alert(Alert.AlertType.CONFIRMATION, "确定删除?").showAndWait().filter(response -> response == ButtonType.OK).ifPresent(response -> {
             ActionItem selectedItem = itemListView.getSelectionModel().getSelectedItem();
-            itemListView.getItems().remove(selectedItem);
-            modifiedMap.put("items", itemListView.getItems());
+            editingAction.getItemList().remove(selectedItem);
         });
     }
 
-    protected void saveOrEdit(Map<String, Object> response) {
-        boolean isEdit = false;
-        ActionItem item;
-        if (response.containsKey("id")) {
-            // Edit
-            isEdit = true;
-            item = findItemById((int)response.get("id"));
+    protected void saveOrEditItem(ActionItem item) {
+        ActionItem oldItem = findItemById(item.getId());
+
+        if (oldItem != null) {
+            oldItem.merge(item);
+            itemListView.refresh();
         } else {
-            // Add
-            item = new ActionItem();
+            editingAction.getItemList().add(item);
         }
-
-        Set<String> keySet = response.keySet();
-        for (String key : keySet) {
-            Object value = response.get(key);
-            switch (key) {
-                case "text":
-                    item.setText((String)value);
-                    break;
-                case "isBold":
-                    item.setBold((boolean)value);
-                    break;
-                case "fontColor":
-                    item.setFontColor((String)value);
-                    break;
-                case "fontSize":
-                    item.setFontSize((int)value);
-                    break;
-                case "delay":
-                    item.setDelay((long)value);
-                    break;
-                case "clue":
-                    item.setClue((Clue)value);
-                    break;
-                case "event":
-                    item.setEvent((StoryEvent)value);
-                    break;
-                case "sound":
-                    item.setSound((String)value);
-                    break;
-            }
-        }
-
-        if (!isEdit) {
-            item.setId(StoryEditor.Instance().getProject().nextItemId());
-            itemListView.getItems().add(item);
-        }
-
-        modifiedMap.put("items", itemListView.getItems());
-        itemListView.refresh();
     }
 
     protected ActionItem findItemById(int id) {
-        List<ActionItem> itemList = itemListView.getItems();
+        List<ActionItem> itemList = editingAction.getItemList();
         if (itemList != null && !itemList.isEmpty()) {
             for (ActionItem item : itemList) {
                 if (item.getId() == id) {

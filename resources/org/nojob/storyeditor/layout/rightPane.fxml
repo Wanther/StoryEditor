@@ -19,8 +19,11 @@
             </HBox>
 
             <TableView fx:id="eventListView" VBox.vgrow="ALWAYS">
+                <columnResizePolicy>
+                    <TableView fx:constant="CONSTRAINED_RESIZE_POLICY"/>
+                </columnResizePolicy>
                 <columns>
-                    <TableColumn text="ID" sortable="false" editable="false" maxWidth="40">
+                    <TableColumn text="ID" sortable="false" editable="false" minWidth="40" maxWidth="40">
                         <cellValueFactory>
                             <PropertyValueFactory property="id"/>
                         </cellValueFactory>
@@ -33,7 +36,7 @@
                             <TextFieldTableCell fx:factory="forTableColumn"/>
                         </cellFactory>
                     </TableColumn>
-                    <TableColumn text="操作">
+                    <TableColumn minWidth="30" maxWidth="30">
                         <cellFactory>
                             <org.nojob.storyeditor.view.cell.CellFactorys fx:factory="buttonForTableCell"/>
                         </cellFactory>
@@ -48,27 +51,27 @@
                 <Insets top="5" right="0" bottom="0" left="0"/>
             </padding>
 
-            <HBox spacing="5">
-                <TextField fx:id="addClueText" promptText="请输入事件描述" HBox.hgrow="ALWAYS"/>
+            <HBox spacing="5" alignment="CENTER_RIGHT">
                 <Button fx:id="addClueBtn" text="添加"/>
+                <Button fx:id="editClueBtn" text="编辑"/>
             </HBox>
 
             <TableView fx:id="clueListView" VBox.vgrow="ALWAYS">
+                <columnResizePolicy>
+                    <TableView fx:constant="CONSTRAINED_RESIZE_POLICY"/>
+                </columnResizePolicy>
                 <columns>
-                    <TableColumn text="ID" sortable="false" editable="false" maxWidth="40">
+                    <TableColumn text="ID" sortable="false" editable="false" minWidth="40" maxWidth="40">
                         <cellValueFactory>
                             <PropertyValueFactory property="id"/>
                         </cellValueFactory>
                     </TableColumn>
-                    <TableColumn fx:id="clueTextColumn" text="描述" sortable="false" editable="true">
+                    <TableColumn text="描述" sortable="false" editable="false">
                         <cellValueFactory>
                             <PropertyValueFactory property="text"/>
                         </cellValueFactory>
-                        <cellFactory>
-                            <TextFieldTableCell fx:factory="forTableColumn"/>
-                        </cellFactory>
                     </TableColumn>
-                    <TableColumn text="操作">
+                    <TableColumn minWidth="30" maxWidth="30">
                         <cellFactory>
                             <org.nojob.storyeditor.view.cell.CellFactorys fx:factory="buttonForTableCell"/>
                         </cellFactory>
@@ -89,6 +92,9 @@
             </HBox>
 
             <TableView fx:id="soundListView" VBox.vgrow="ALWAYS">
+                <columnResizePolicy>
+                    <TableView fx:constant="CONSTRAINED_RESIZE_POLICY"/>
+                </columnResizePolicy>
                 <columns>
                     <TableColumn fx:id="soundNameColumn" text="文件名" sortable="false" editable="true">
                         <cellValueFactory>

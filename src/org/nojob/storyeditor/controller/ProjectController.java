@@ -21,8 +21,6 @@ import org.nojob.storyeditor.view.Viewport;
 
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -41,11 +39,9 @@ public class ProjectController {
         actionListChangeListener = new ActionListChangeListener();
         actionLinkListChangeListener = new ActionLinkListChangeListener();
 
-        renderViewport();
-
         actionViewport.setContextMenu(buildViewportContextMenu());
 
-        StoryEditor.Instance().getProject().getActions().addListener(actionListChangeListener);
+        initializeActions();
 
         selectedNodes.addListener(new ListChangeListener<Node>() {
             @Override
@@ -65,6 +61,10 @@ public class ProjectController {
                 }
             }
         });
+
+        actionViewport.setOnMouseClicked((MouseEvent e) -> {
+            selectedNodes.clear();
+        });
     }
 
     public void onZoomIn() {
@@ -83,12 +83,6 @@ public class ProjectController {
             return;
         }
         StoryEditor.Instance().async(new SearchTask(queryString));
-    }
-
-    protected void showActionDetail(ActionNode actionNode) {
-        Dialog<Map<String, Object>> dialog = ActionDetailController.createDialog(actionNode.getAction(), actionNode.getScene().getWindow());
-
-        dialog.showAndWait().ifPresent(this::bindActionNode);
     }
 
     protected ContextMenu buildViewportContextMenu() {
@@ -121,10 +115,10 @@ public class ProjectController {
         menu.getItems().add(item);
 
         item = new MenuItem("属性");
-        item.getProperties().put("target_action", actionPane);
+        item.getProperties().put("target_action", actionPane.getAction());
         item.setOnAction(e -> {
             MenuItem clicked = (MenuItem)e.getSource();
-            showActionDetail((ActionNode)clicked.getProperties().get("target_action"));
+            showActionDetail((StoryAction) clicked.getProperties().get("target_action"));
         });
         menu.getItems().add(item);
 
@@ -174,14 +168,11 @@ public class ProjectController {
 
         ActionLink link = new ActionLink();
         link.setLinkFromId(actionNode.getAction().getId());
-        Dialog<ActionLink> dialog = ActionLinkController.create(link, actionViewport.getScene().getWindow());
-        dialog.showAndWait().filter(response -> response != null).ifPresent(this::createLinkLine);
-
+        ActionLinkController.create(link, actionViewport.getScene().getWindow()).showAndWait().ifPresent(this::createLinkLine);
     }
 
     protected void showLinkDetail(ActionLink link) {
-        Dialog<ActionLink> dialog = ActionLinkController.create(link, actionViewport.getScene().getWindow());
-        dialog.showAndWait().ifPresent(this::updateLinkLine);
+        ActionLinkController.create(link, actionViewport.getScene().getWindow()).showAndWait().ifPresent(this::updateLinkLine);
     }
 
     protected void createLinkLine(ActionLink link) {
@@ -209,56 +200,24 @@ public class ProjectController {
         });
     }
 
-    protected void bindActionNode(Map<String, Object> modifiedAction) {
-        if (modifiedAction == null || modifiedAction.isEmpty()) {
-            return;
-        }
-        int id = (int)modifiedAction.get("id");
-        ActionNode node = (ActionNode)actionViewport.lookup("#" + ActionNode.ID_PREFIX + id);
-        StoryAction action = node.getAction();
-        Set<String> keySet = modifiedAction.keySet();
-        for (String key : keySet) {
-            Object value = modifiedAction.get(key);
-            switch (key) {
-                case "isKeyAction":
-                    action.setKeyAction((boolean)value);
-                    break;
-                case "keyActionText":
-                    action.setKeyActionText((String)value);
-                    break;
-                case "achievement":
-                    action.setAchievement((int)value);
-                    break;
-                case "payAmount":
-                    action.setPayAmount((int)value);
-                    break;
-                case "links":
-                    break;
-                case "items":
-                    action.getItemList().clear();
-                    action.getItemList().addAll((List<ActionItem>)value);
-                    break;
-            }
+    protected void updateActionNode(StoryAction action) {
+        StoryAction oldAction = StoryEditor.Instance().getProject().findActionById(action.getId());
+        if (oldAction == null) {
+            throw new RuntimeException("oldAction = null");
+        } else {
+            oldAction.merge(action);
         }
     }
 
-    protected void renderViewport() {
+    protected void initializeActions() {
         Project project = StoryEditor.Instance().getProject();
 
         if (project == null) {
             return;
         }
 
-        project.getActions().forEach(action -> {
-            ActionNode actionNode = ActionNode.create(action);
-            actionNode.setContextMenu(buildActionContextMenu(actionNode));
-            actionNode.setOnMouseClicked((MouseEvent e) -> {
-                if (e.getClickCount() >= 2) {
-                    showActionDetail(actionNode);
-                }
-            });
-            actionViewport.getItems().add(actionNode);
-        });
+        project.getActions().forEach(action -> actionViewport.getItems().add(createActionNode(action)));
+        project.getActions().addListener(actionListChangeListener);
 
         project.getActions().forEach(action -> {
             action.getLinkList().forEach(link -> {
@@ -267,13 +226,35 @@ public class ProjectController {
                 line.setOnMouseClicked((MouseEvent e) -> {
                     if (e.getClickCount() >= 2) {
                         showLinkDetail(link);
+                    } else {
+                        selectedNodes.clear();
+                        selectedNodes.add(line);
                     }
                 });
                 actionViewport.getItems().add(0, line);
             });
 
-            action.getLinkList().addListener(new ActionLinkListChangeListener());
+            action.getLinkList().addListener(actionLinkListChangeListener);
         });
+    }
+
+    protected ActionNode createActionNode(StoryAction action) {
+        ActionNode actionNode = ActionNode.create(action);
+        actionNode.setContextMenu(buildActionContextMenu(actionNode));
+        actionNode.addEventFilter(MouseEvent.MOUSE_CLICKED, e -> {
+            if (e.getClickCount() >= 2) {
+                showActionDetail(action);
+            }
+        });
+        actionNode.setOnMouseClicked((MouseEvent e) -> {
+            selectedNodes.clear();
+            selectedNodes.add(actionNode);
+        });
+        return actionNode;
+    }
+
+    protected void showActionDetail(StoryAction action) {
+        ActionDetailController.createDialog(action, actionViewport.getScene().getWindow()).showAndWait().ifPresent(this::updateActionNode);
     }
 
     private class ActionListChangeListener implements ListChangeListener<StoryAction> {
@@ -282,16 +263,7 @@ public class ProjectController {
         public void onChanged(Change<? extends StoryAction> c) {
             while (c.next()) {
                 if (c.wasAdded()) {
-                    c.getAddedSubList().forEach(item -> {
-                        ActionNode actionNode = ActionNode.create(item);
-                        actionNode.setContextMenu(buildActionContextMenu(actionNode));
-                        actionNode.setOnMouseClicked((MouseEvent e) -> {
-                            if (e.getClickCount() >= 2) {
-                                showActionDetail(actionNode);
-                            }
-                        });
-                        actionViewport.getItems().add(actionNode);
-                    });
+                    c.getAddedSubList().forEach(item -> actionViewport.getItems().add(createActionNode(item)));
                 }
 
                 if (c.wasRemoved()) {
@@ -308,7 +280,7 @@ public class ProjectController {
                             }
                         });
                         actionViewport.getItems().remove(actionNode);
-                        selectedNodes.remove(item);
+                        selectedNodes.remove(actionNode);
                     });
                 }
             }

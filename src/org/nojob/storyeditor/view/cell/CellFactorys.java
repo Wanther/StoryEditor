@@ -1,14 +1,14 @@
 package org.nojob.storyeditor.view.cell;
 
+import javafx.geometry.Pos;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.CheckBoxTableCell;
 import javafx.scene.paint.Color;
+import javafx.scene.text.Font;
+import javafx.scene.text.FontWeight;
 import javafx.util.Callback;
 import org.nojob.storyeditor.StoryEditor;
-import org.nojob.storyeditor.model.ActionItem;
-import org.nojob.storyeditor.model.Clue;
-import org.nojob.storyeditor.model.StoryAction;
-import org.nojob.storyeditor.model.StoryEvent;
+import org.nojob.storyeditor.model.*;
 
 import java.io.File;
 
@@ -48,7 +48,16 @@ public class CellFactorys {
         return list -> new StoryActionListCell();
     }
 
+    public static Callback<ListView<ActionItem>, ListCell<ActionItem>> actionItemTextForListCell() {
+        return list -> new ActionItemTextListCell();
+    }
+
     public static class ButtonTableCell<S, T> extends TableCell<S, T>{
+
+        public ButtonTableCell () {
+            setAlignment(Pos.CENTER);
+        }
+
         @Override
         protected void updateItem(T item, boolean empty) {
             super.updateItem(item, empty);
@@ -58,7 +67,8 @@ public class CellFactorys {
             S rowItem = row == null ? null : (S) row.getItem();
 
             if (!empty && rowItem != null) {
-                Hyperlink delBtn = new Hyperlink("X");
+                Button delBtn = new Button("X");
+                delBtn.getStyleClass().add("button-small");
                 delBtn.setOnAction(e -> {
                     if (rowItem instanceof StoryEvent) {
                         new Alert(Alert.AlertType.CONFIRMATION, "确认删除?").showAndWait().filter(response -> response == ButtonType.OK).ifPresent(response -> {
@@ -105,6 +115,21 @@ public class CellFactorys {
             if (!empty && actionItem != null) {
                 setText(item);
                 setTextFill(Color.valueOf(actionItem.getFontColor()));
+                setFont(Font.font(Font.getDefault().getFamily(), actionItem.isBold() ? FontWeight.BOLD : FontWeight.NORMAL, Project.FONT_SIZE.get(actionItem.getFontSize())));
+            } else {
+                setText(null);
+            }
+        }
+    }
+
+    public static class ActionItemTextListCell extends ListCell<ActionItem> {
+        @Override
+        protected void updateItem(ActionItem item, boolean empty) {
+            super.updateItem(item, empty);
+
+            if (!empty && item != null) {
+                setText(item.getText());
+                setTextFill(Color.valueOf(item.getFontColor()));
             } else {
                 setText(null);
             }

@@ -1,45 +1,41 @@
 package org.nojob.storyeditor.model;
 
-import com.google.gson.JsonElement;
-import com.google.gson.JsonNull;
-import com.google.gson.JsonObject;
+import com.oracle.javafx.jmx.json.JSONDocument;
 import javafx.beans.property.*;
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
+import javafx.scene.paint.Color;
+
 
 /**
  * Created by wanghe on 16/7/17.
  */
 public class ActionItem implements Cloneable {
+    public static final String ID_PREFIX = "item_";
 
-    public static ObservableList<String> FONT_SIZE = FXCollections.observableArrayList();
+    public static ActionItem create(int id) {
+        ActionItem item = new ActionItem();
+        item.setId(id);
+        item.setFontColor(Color.BLACK.toString());
 
-    static {
-        FONT_SIZE.add("普通");
-        FONT_SIZE.add("小");
-        FONT_SIZE.add("大");
+        return item;
     }
 
-    public static ActionItem create(JsonObject json, Project project) {
+    public static ActionItem create(JSONDocument json, Project project) {
         ActionItem item = new ActionItem();
-        item.setId(json.get("id").getAsInt());
-        item.setText(json.get("text").getAsString());
-        item.setBold(json.get("bold").getAsBoolean());
-        item.setFontColor(json.get("fontColor").getAsString());
-        item.setFontSize(json.get("fontSize").getAsInt());
-        item.setDelay(json.get("delay").getAsLong());
-        JsonElement jsonElement = json.get("sound");
-        if (jsonElement.isJsonNull()) {
-            item.setSound(null);
-        } else {
-            item.setSound(jsonElement.getAsString());
+        item.setId(json.getNumber("id").intValue());
+        item.setText(json.getString("text"));
+        item.setTextTW(json.getString("textTW"));
+        item.setTextENG(json.getString("textENG"));
+        item.setBold(json.getBoolean("bold"));
+        item.setFontColor(json.getString("fontColor"));
+        item.setFontSize(json.getNumber("fontSize").intValue());
+        item.setDelay(json.getNumber("delay").longValue());
+        item.setSound(json.getString("sound"));
+        if (!json.isNull("condition")) {
+            item.setCondition(ItemCondition.create(json.get("condition"), project));
         }
 
-        JsonElement clue = json.get("clue");
-        if (clue.isJsonNull()) {
-            item.setClue(null);
-        } else {
-            int clueId = ((JsonObject)clue).get("id").getAsInt();
+        if (!json.isNull("clue")) {
+            int clueId = json.get("clue").getNumber("id").intValue();
             for (Clue cl : project.getClueList()) {
                 if (cl.getId() == clueId) {
                     item.setClue(cl);
@@ -48,11 +44,8 @@ public class ActionItem implements Cloneable {
             }
         }
 
-        JsonElement event = json.get("event_trigger");
-        if (event.isJsonNull()) {
-            item.setEvent(null);
-        } else {
-            int eventId = ((JsonObject)event).get("id").getAsInt();
+        if (!json.isNull("event_trigger")) {
+            int eventId = json.get("event_trigger").getNumber("id").intValue();
             for (StoryEvent ev : project.getEventList()) {
                 if (ev.getId() == eventId) {
                     item.setEvent(ev);
@@ -66,6 +59,8 @@ public class ActionItem implements Cloneable {
 
     private IntegerProperty id;
     private StringProperty text;
+    private StringProperty textTW;
+    private StringProperty textENG;
     private BooleanProperty isBold;
     private StringProperty fontColor;
     private IntegerProperty fontSize;
@@ -105,6 +100,36 @@ public class ActionItem implements Cloneable {
 
     public void setText(String text) {
         textProperty().set(text);
+    }
+
+    public StringProperty textTWProperty() {
+        if (textTW == null) {
+            textTW = new SimpleStringProperty(this, "textTW");
+        }
+        return textTW;
+    }
+
+    public String getTextTW() {
+        return textTWProperty().get();
+    }
+
+    public void setTextTW(String textTW) {
+        textTWProperty().set(textTW);
+    }
+
+    public StringProperty textENGProperty() {
+        if (textENG == null) {
+            textENG = new SimpleStringProperty(this, "textENG");
+        }
+        return textENG;
+    }
+
+    public String getTextENG() {
+        return textENGProperty().get();
+    }
+
+    public void setTextENG(String textENG) {
+        textENGProperty().set(textENG);
     }
 
     public BooleanProperty isBoldProperty() {
@@ -153,7 +178,7 @@ public class ActionItem implements Cloneable {
     }
 
     public String getFontSizeText() {
-        return FONT_SIZE.get(getFontSize());
+        return Project.FONT_SIZE_DESC.get(getFontSize());
     }
 
     public LongProperty delayProperty() {
@@ -236,6 +261,8 @@ public class ActionItem implements Cloneable {
         ActionItem item = new ActionItem();
         item.setId(getId());
         item.setText(getText());
+        item.setTextTW(getTextTW());
+        item.setTextENG(getTextENG());
         item.setBold(isBold());
         item.setFontColor(getFontColor());
         item.setFontSize(getFontSize());
@@ -248,40 +275,65 @@ public class ActionItem implements Cloneable {
         return item;
     }
 
-    public JsonObject toJSONObject() {
-        JsonObject json = toSaveJSON();
-        json.addProperty("fontColor", colorFormatConvert(getFontColor()));
-
-        if (getEvent() == null) {
-            json.add("event_trigger", JsonNull.INSTANCE);
-        } else {
-            json.addProperty("event_trigger", getEvent().getId());
-        }
-
-        return json;
+    public void merge(ActionItem other) {
+        setText(other.getText());
+        setTextTW(other.getTextTW());
+        setTextENG(other.getTextENG());
+        setBold(other.isBold());
+        setFontColor(other.getFontColor());
+        setFontSize(other.getFontSize());
+        setDelay(other.getDelay());
+        setClue(other.getClue());
+        setEvent(other.getEvent());
+        setSound(other.getSound());
+        setCondition(other.getCondition());
     }
 
-    public JsonObject toSaveJSON() {
-        JsonObject json = new JsonObject();
-        json.addProperty("id", getId());
-        json.addProperty("text", getText());
-        json.addProperty("bold", isBold());
-        json.addProperty("fontColor", getFontColor());
-        json.addProperty("fontSize", getFontSize());
-        json.addProperty("delay", getDelay());
-        json.addProperty("sound", getSound());
-        if (getClue() == null) {
-            json.add("clue", JsonNull.INSTANCE);
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        ActionItem that = (ActionItem) o;
+
+        return getId() == that.getId();
+
+    }
+
+    @Override
+    public int hashCode() {
+        return getClass().hashCode() + getId();
+    }
+
+    public JSONDocument toSaveJSON(int type) {
+        JSONDocument json = JSONDocument.createObject();
+        json.setNumber("id", getId());
+
+        if (type == Project.ZH_CN) {
+            json.setString("text", getText());
+        } else if (type == Project.ZH_TW) {
+            json.setString("text", getTextTW());
+        } else if (type == Project.ENG) {
+            json.setString("text", getTextENG());
         } else {
-            json.add("clue", getClue().toJSONObject());
+            json.setString("text", getText());
+            json.setString("textTW", getTextTW());
+            json.setString("textENG", getTextENG());
         }
-        if (getEvent() == null) {
-            json.add("event_trigger", JsonNull.INSTANCE);
+
+        json.setBoolean("bold", isBold());
+
+        if (type == Project.ALL) {
+            json.setString("fontColor", getFontColor());
         } else {
-            json.add("event_trigger", getEvent().toSaveJSON());
+            json.setString("fontColor", colorFormatConvert(getFontColor()));
         }
-        //TODO:
-        json.add("condition", JsonNull.INSTANCE);
+        json.setNumber("fontSize", getFontSize());
+        json.setNumber("delay", getDelay());
+        json.setString("sound", getSound());
+        json.set("clue", getClue() == null ? null : getClue().toSaveJSON(type));
+        json.set("event_trigger", getEvent() == null ? null : getEvent().toSaveJSON(type));
+        json.set("condition", getCondition() == null ? null : getCondition().toSaveJSON(type));
 
         return json;
     }

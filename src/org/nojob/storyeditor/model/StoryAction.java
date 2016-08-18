@@ -1,16 +1,17 @@
 package org.nojob.storyeditor.model;
 
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
+import com.oracle.javafx.jmx.json.JSONDocument;
 import javafx.beans.property.*;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 
+import java.util.Iterator;
+import java.util.List;
+
 /**
  * Created by wanghe on 16/7/14.
  */
-public class StoryAction {
+public class StoryAction implements Cloneable {
 
     public static StoryAction create(int id, double x, double y) {
         StoryAction action = new StoryAction();
@@ -21,39 +22,38 @@ public class StoryAction {
         return action;
     }
 
-    public static StoryAction create(JsonObject json, Project project) {
+    public static StoryAction create(JSONDocument json, Project project) {
         StoryAction action = new StoryAction();
 
-        action.setId(json.get("id").getAsInt());
-        action.setKeyAction(json.get("keyNode").getAsBoolean());
-        action.setX(json.get("x").getAsDouble());
-        action.setY(json.get("y").getAsDouble());
+        action.setId(json.getNumber("id").intValue());
+        action.setKeyAction(json.getBoolean("keyNode"));
+        action.setX(json.getNumber("x").doubleValue());
+        action.setY(json.getNumber("y").doubleValue());
 
-        JsonElement element = json.get("keyValue");
-        if (element.isJsonNull()) {
-            action.setKeyActionText(null);
-        } else {
-            action.setKeyActionText(element.getAsString());
-        }
-        action.setAchievement(json.get("achievement").getAsInt());
-        action.setPayAmount(json.get("payAmount").getAsInt());
+        action.setKeyActionText(json.getString("keyValue"));
+        action.setKeyActionTextTW(json.getString("keyValueTW"));
+        action.setKeyActionTextENG(json.getString("keyValueENG"));
+        action.setAchievement(json.getNumber("achievement").intValue());
+        action.setPayAmount(json.getNumber("payAmount").intValue());
 
-        JsonArray array = json.getAsJsonArray("next");
-        if (array != null) {
-            for (int i = 0, size = array.size(); i < size; i++) {
-                JsonObject obj = (JsonObject) array.get(i);
-                ActionLink link = ActionLink.create(obj, action.getId());
-                action.getLinkList().add(link);
-            }
+        List<Object> objects = json.getList("next");
+        if (objects != null && !objects.isEmpty()) {
+            objects.stream().collect(action::getLinkList, (list, item) -> {
+                ActionLink link = ActionLink.create((JSONDocument)item, action.getId());
+                if (link != null) {
+                    list.add(link);
+                }
+            }, List::addAll);
         }
 
-        array = json.getAsJsonArray("items");
-        if (array != null) {
-            for (int i = 0, size = array.size(); i < size; i++) {
-                JsonObject obj = (JsonObject) array.get(i);
-                ActionItem item = ActionItem.create(obj, project);
-                action.getItemList().add(item);
-            }
+        objects = json.getList("items");
+        if (objects != null && !objects.isEmpty()) {
+            objects.stream().collect(action::getItemList, (list, item) -> {
+                ActionItem itm = ActionItem.create((JSONDocument)item, project);
+                if (itm != null) {
+                    list.add(itm);
+                }
+            }, List::addAll);
         }
 
         return action;
@@ -62,6 +62,8 @@ public class StoryAction {
     private IntegerProperty id;
     private BooleanProperty isKeyAction;
     private StringProperty keyActionText;
+    private StringProperty keyActionTextTW;
+    private StringProperty keyActionTextENG;
     private IntegerProperty achievement;
     private IntegerProperty payAmount;
     private ObservableList<ActionLink> linkList = FXCollections.observableArrayList();
@@ -154,6 +156,36 @@ public class StoryAction {
         keyActionTextProperty().set(keyActionText);
     }
 
+    public StringProperty keyActionTextTWProperty() {
+        if (keyActionTextTW == null) {
+            keyActionTextTW = new SimpleStringProperty(this, "keyActionTextTW");
+        }
+        return keyActionTextTW;
+    }
+
+    public String getKeyActionTextTW() {
+        return keyActionTextTWProperty().get();
+    }
+
+    public void setKeyActionTextTW(String keyActionTextTW) {
+        keyActionTextTWProperty().set(keyActionTextTW);
+    }
+
+    public StringProperty keyActionTextENGProperty() {
+        if (keyActionTextENG == null) {
+            keyActionTextENG = new SimpleStringProperty(this, "keyActionTextENG");
+        }
+        return keyActionTextENG;
+    }
+
+    public String getKeyActionTextENG() {
+        return keyActionTextENGProperty().get();
+    }
+
+    public void setKeyActionTextENG(String keyActionTextENG) {
+        keyActionTextENGProperty().set(keyActionTextENG);
+    }
+
     public IntegerProperty achievementProperty() {
         if (achievement == null) {
             achievement = new SimpleIntegerProperty(this, "achievement");
@@ -191,47 +223,132 @@ public class StoryAction {
         return linkList;
     }
 
-    public JsonObject toJSONObject() {
-        JsonObject action = new JsonObject();
-        action.addProperty("id", getId());
-        action.addProperty("keyNode", isKeyAction());
-        action.addProperty("keyValue", getKeyActionText());
-        action.addProperty("achievement", getAchievement());
-        action.addProperty("payAmount", getPayAmount());
-
-        JsonArray nextArray = new JsonArray();
-        if (linkList != null && !linkList.isEmpty()) {
-            for (ActionLink link : linkList) {
-                nextArray.add(link.toJSONObject());
-            }
-        }
-        action.add("next", nextArray);
-
-        JsonArray itemArray = new JsonArray();
-        if (itemList != null && !itemList.isEmpty()) {
-            for (ActionItem item : itemList) {
-                itemArray.add(item.toJSONObject());
-            }
-        }
-        action.add("items", itemArray);
+    @Override
+    public StoryAction clone() {
+        StoryAction action = new StoryAction();
+        action.setId(getId());
+        action.setKeyAction(isKeyAction());
+        action.setKeyActionText(getKeyActionText());
+        action.setKeyActionTextTW(getKeyActionTextTW());
+        action.setKeyActionTextENG(getKeyActionTextENG());
+        action.setAchievement(getAchievement());
+        action.setPayAmount(getPayAmount());
+        action.setX(getX());
+        action.setY(getY());
+        linkList.stream().collect(action::getLinkList, (list, item) -> list.add(item.clone()), List::addAll);
+        itemList.stream().collect(action::getItemList, (list, item) -> list.add(item.clone()), List::addAll);
 
         return action;
     }
 
-    public JsonObject toSaveJSON() {
-        JsonObject action = toJSONObject();
+    public void merge(StoryAction other) {
+        setKeyAction(other.isKeyAction());
+        setKeyActionText(other.getKeyActionText());
+        setKeyActionTextTW(other.getKeyActionTextTW());
+        setKeyActionTextENG(other.getKeyActionTextENG());
+        setAchievement(other.getAchievement());
+        setPayAmount(other.getPayAmount());
+        other.getLinkList().forEach(link -> {
+            ActionLink merge = null;
+            for (ActionLink lk : linkList) {
+                if (lk.equals(link)) {
+                    merge = lk;
+                    break;
+                }
+            }
+            if (merge != null) {
+                merge.merge(link);
+            } else {
+                linkList.add(link);
+            }
+        });
 
-        JsonArray itemArray = new JsonArray();
-
-        action.addProperty("x", getX());
-        action.addProperty("y", getY());
-        if (itemList != null && !itemList.isEmpty()) {
-            for (ActionItem item : itemList) {
-                itemArray.add(item.toSaveJSON());
+        Iterator<ActionLink> linkIterator = linkList.iterator();
+        while (linkIterator.hasNext()) {
+            if (!other.getLinkList().contains(linkIterator.next())){
+                linkIterator.remove();
             }
         }
-        action.add("items", itemArray);
+
+        other.getItemList().forEach(item -> {
+            ActionItem merge = null;
+            for (ActionItem i : itemList) {
+                if (i.equals(item)) {
+                    merge = i;
+                    break;
+                }
+            }
+            if (merge != null) {
+                merge.merge(item);
+            } else {
+                itemList.add(item);
+            }
+        });
+
+        Iterator<ActionItem> itemIterator = itemList.iterator();
+        while (itemIterator.hasNext()) {
+            if (!other.getItemList().contains(itemIterator.next())){
+                itemIterator.remove();
+            }
+        }
+    }
+
+    public JSONDocument toSaveJSON(int type) {
+        JSONDocument action = JSONDocument.createObject();
+        action.setNumber("id", getId());
+        action.setBoolean("keyNode", isKeyAction());
+
+        if (type == Project.ZH_CN) {
+            action.setString("keyValue", getKeyActionText());
+        } else if (type == Project.ZH_TW) {
+            action.setString("keyValue", getKeyActionTextTW());
+        } else if (type == Project.ENG) {
+            action.setString("keyValue", getKeyActionTextENG());
+        } else {
+            action.setString("keyValue", getKeyActionText());
+            action.setString("keyValueTW", getKeyActionTextTW());
+            action.setString("keyValueENG", getKeyActionTextENG());
+            action.setNumber("x", getX());
+            action.setNumber("y", getY());
+        }
+
+        action.setNumber("achievement", getAchievement());
+        action.setNumber("payAmount", getPayAmount());
+
+        JSONDocument array = null;
+        if (linkList != null && !linkList.isEmpty()) {
+            array = JSONDocument.createArray();
+            for (ActionLink link : linkList) {
+                array.array().add(link.toSaveJSON(type));
+            }
+        }
+        action.set("next", array);
+
+        array = null;
+        if (itemList != null && !itemList.isEmpty()) {
+            array = JSONDocument.createArray();
+            for (ActionItem item : itemList) {
+                array.array().add(item.toSaveJSON(type));
+            }
+        }
+        action.set("items", array);
 
         return action;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        StoryAction action = (StoryAction) o;
+
+        return getId() == action.getId();
+
+    }
+
+    @Override
+    public int hashCode() {
+        return getClass().hashCode() + getId();
     }
 }

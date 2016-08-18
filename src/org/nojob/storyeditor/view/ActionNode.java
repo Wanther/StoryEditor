@@ -3,15 +3,11 @@ package org.nojob.storyeditor.view;
 import javafx.beans.DefaultProperty;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
-import javafx.collections.ListChangeListener;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
 import javafx.scene.control.Control;
-import javafx.scene.control.Label;
 import javafx.scene.control.Skin;
-import javafx.scene.layout.Pane;
 import org.nojob.storyeditor.StoryEditor;
-import org.nojob.storyeditor.model.ActionItem;
 import org.nojob.storyeditor.model.StoryAction;
 
 import java.io.IOException;
@@ -24,11 +20,6 @@ public class ActionNode extends Control {
 
     public static final String ID_PREFIX = "action_";
 
-    private Label actionId;
-    private Label keyActionText;
-
-    public ActionNode() {}
-
     public static ActionNode create(StoryAction action) {
 
         ActionNode actionNode = null;
@@ -38,38 +29,20 @@ public class ActionNode extends Control {
             e.printStackTrace();
         }
 
-        actionNode.setAction(action);
-
-        actionNode.initialize();
+        actionNode.initialize(action);
 
         return actionNode;
     }
 
     private StoryAction action;
-
     private ObjectProperty<Node> content;
 
-    private void initialize() {
+    private void initialize(StoryAction action) {
+
+        setAction(action);
+
         setId(ID_PREFIX + action.getId());
-        setLayoutX(action.getX());
-        setLayoutY(action.getY());
 
-        actionId = (Label) getContent().lookup("#actionId");
-        actionId.setText(String.format("[%d]", action.getId()));
-
-        keyActionText = (Label) getContent().lookup("#keyActionText");
-        keyActionText.setText(action.getKeyActionText());
-        action.keyActionTextProperty().addListener((observable, oldValue, newValue) -> {
-            keyActionText.setText(newValue);
-        });
-
-        action.getItemList().addListener(new ListChangeListener<ActionItem>() {
-            @Override
-            public void onChanged(Change<? extends ActionItem> c) {
-                bindItem();
-            }
-        });
-        bindItem();
     }
 
     public StoryAction getAction() {
@@ -98,14 +71,5 @@ public class ActionNode extends Control {
     @Override
     protected Skin<?> createDefaultSkin() {
         return new ActionNodeSkin(this);
-    }
-
-    public void bindItem() {
-        Pane itemContainer = (Pane) getContent().lookup("#itemContainer");
-        itemContainer.getChildren().clear();
-        action.getItemList().forEach(item -> {
-            Label label = new Label(item.getText());
-            itemContainer.getChildren().add(label);
-        });
     }
 }

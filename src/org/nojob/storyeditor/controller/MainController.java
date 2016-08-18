@@ -1,5 +1,7 @@
 package org.nojob.storyeditor.controller;
 
+import com.oracle.javafx.jmx.json.JSONFactory;
+import com.oracle.javafx.jmx.json.JSONReader;
 import javafx.application.Platform;
 import javafx.concurrent.Task;
 import javafx.fxml.FXML;
@@ -314,13 +316,31 @@ public class MainController {
             Project project = StoryEditor.Instance().getProject();
 
             try(ZipOutputStream out = new ZipOutputStream(new FileOutputStream(exportFile))) {
-                out.putNextEntry(new ZipEntry("story_zh-CN.json"));
-                byte[] buffer = project.toJSONObject().toString().getBytes();
-                out.write(buffer, 0, buffer.length);
-                out.closeEntry();
+                Integer[] languages = new Integer[]{Project.ZH_CN, Project.ZH_TW, Project.ENG};
+                for (Integer language : languages) {
+                    String entryName;
+                    switch (language) {
+                        case Project.ZH_CN:
+                            entryName = "story_zh-CN.json";
+                            break;
+                        case Project.ZH_TW:
+                            entryName = "story_zh-TW.json";
+                            break;
+                        case Project.ENG:
+                            entryName = "story_eng.json";
+                            break;
+                        default:
+                            entryName = "story.json";
+                    }
+                    out.putNextEntry(new ZipEntry(entryName));
+                    byte[] buffer = StoryEditor.Instance().getProject().toSaveJSON(language).toJSON().getBytes("UTF-8");
+                    out.write(buffer, 0, buffer.length);
+                    out.closeEntry();
+                }
 
                 File[] files = project.getSoundDir().listFiles((dir, name) -> name.endsWith(".mp3") || name.endsWith(".MP3"));
                 if (files != null) {
+                    byte[] buffer = new byte[8 * 1024];
                     for (File f : files) {
                         out.putNextEntry(new ZipEntry("resources/audio/" + f.getName()));
                         try(InputStream in = new FileInputStream(f)) {
@@ -364,17 +384,11 @@ public class MainController {
         protected Void call() throws Exception {
             Project project = StoryEditor.Instance().getProject();
 
-            String saveString = project.toSaveJSON().toString();
+            String saveString = project.toSaveJSON(Project.ALL).toJSON();
 
-            OutputStream out = null;
-            try {
-                out = new FileOutputStream(new File(project.getRootDir(), Project.PROJECT_CONTENT));
+            try(OutputStream out = new FileOutputStream(new File(project.getRootDir(), Project.PROJECT_CONTENT))){
                 byte[] bytes = saveString.getBytes("UTF-8");
                 out.write(bytes, 0, bytes.length);
-            } finally {
-                if (out != null) {
-                    out.close();
-                }
             }
 
             Thread.sleep(200);
@@ -415,7 +429,21 @@ public class MainController {
                 throw new AppException("该目录不是工程目录");
             }
 
-            return Project.open(projectRootDir);
+            Project project;
+            File projectFile = new File(projectRootDir, Project.PROJECT_CONTENT);
+            if (!projectFile.exists()) {
+                project = Project.create(projectRootDir);
+            } else {
+                try (InputStreamReader r = new InputStreamReader(new FileInputStream(projectFile))) {
+                    JSONReader reader = JSONFactory.instance().makeReader(r);
+
+                    project = Project.create(projectRootDir, reader.build());
+
+                    reader.close();
+                }
+
+            }
+            return project;
         }
 
         @Override

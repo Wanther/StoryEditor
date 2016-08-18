@@ -8,6 +8,7 @@ import javafx.stage.FileChooser;
 import org.nojob.storyeditor.StoryEditor;
 import org.nojob.storyeditor.exception.AppException;
 import org.nojob.storyeditor.model.Clue;
+import org.nojob.storyeditor.model.StoryAction;
 import org.nojob.storyeditor.model.StoryEvent;
 
 import java.io.*;
@@ -21,9 +22,8 @@ public class RightPaneController {
     @FXML private Button addEventBtn;
     @FXML private TableColumn<StoryEvent, String> eventTextColumn;
     @FXML private TableView<Clue> clueListView;
-    @FXML private TextField addClueText;
     @FXML private Button addClueBtn;
-    @FXML private TableColumn<Clue, String> clueTextColumn;
+    @FXML private Button editClueBtn;
     @FXML private TableView<File> soundListView;
     @FXML private Button addSoundBtn;
     @FXML private Button deleteSoundBtn;
@@ -48,21 +48,12 @@ public class RightPaneController {
         });
 
         clueListView.setItems(StoryEditor.Instance().getProject().cluesProperty());
-        clueListView.setEditable(true);
-        clueTextColumn.setOnEditCommit(e -> {
-            e.getRowValue().setText(e.getNewValue());
+        clueListView.getSelectionModel().selectedIndexProperty().addListener((observable, oldValue, newValue) -> {
+            editClueBtn.setDisable(newValue.intValue() < 0);
         });
 
-        addClueBtn.setOnAction(e -> {
-            String clueText = addClueText.getText();
-            if (clueText != null && !"".equals(clueText)) {
-                Clue clue = new Clue();
-                clue.setId(StoryEditor.Instance().getProject().nextClueId());
-                clue.setText(clueText);
-                StoryEditor.Instance().getProject().getClueList().add(clue);
-                addClueText.clear();
-            }
-        });
+        addClueBtn.setOnAction(e -> showClueDetail(Clue.create(StoryEditor.Instance().getProject().nextClueId())));
+        editClueBtn.setOnAction(e -> showClueDetail(clueListView.getSelectionModel().getSelectedItem()));
 
         soundListView.setItems(StoryEditor.Instance().getProject().getSoundList());
         addSoundBtn.setOnAction(e -> {
@@ -90,8 +81,13 @@ public class RightPaneController {
                     if (c.wasRemoved()) {
                         c.getRemoved().forEach(e -> {
                             StoryEditor.Instance().getProject().getActions().forEach(action -> {
-                                action.getItemList().stream().filter(actionItem -> actionItem.getEvent() != null && actionItem.getEvent().getId() == e.getId()).forEach(actionItem -> {
-                                    actionItem.setEvent(null);
+                                action.getItemList().stream().forEach(actionItem -> {
+                                    if (actionItem.getEvent() != null && actionItem.getEvent().getId() == e.getId()) {
+                                        actionItem.setEvent(null);
+                                    }
+                                    if (actionItem.getCondition() != null) {
+                                        actionItem.getCondition().getEvents().remove(e);
+                                    }
                                 });
                             });
                         });
@@ -135,6 +131,23 @@ public class RightPaneController {
                         });
                     }
                 }
+            }
+        });
+    }
+
+    protected void showClueDetail(Clue clue) {
+        ClueController.create(clue, eventListView.getScene().getWindow()).showAndWait().ifPresent(response -> {
+            Clue merge = null;
+            for (Clue cl : StoryEditor.Instance().getProject().getClueList()) {
+                if (cl.equals(response)) {
+                    merge = cl;
+                    break;
+                }
+            }
+            if (merge == null) {
+                StoryEditor.Instance().getProject().getClueList().add(response);
+            } else {
+                merge.merge(response);
             }
         });
     }

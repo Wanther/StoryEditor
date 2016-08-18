@@ -9,7 +9,7 @@
         <Insets top="5" right="5" bottom="5" left="5"/>
     </padding>
     <columnConstraints>
-        <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="80.0" />
+        <ColumnConstraints hgrow="SOMETIMES" maxWidth="80" halignment="RIGHT"/>
         <ColumnConstraints hgrow="ALWAYS" minWidth="200.0" />
     </columnConstraints>
     <children>
@@ -77,9 +77,6 @@
                     <cellValueFactory>
                         <PropertyValueFactory property="selected"/>
                     </cellValueFactory>
-                    <cellFactory>
-                        <CellFactorys fx:factory="checkBoxForTableCell"/>
-                    </cellFactory>
                 </TableColumn>
                 <TableColumn text="ID" sortable="false" editable="false" maxWidth="40">
                     <cellValueFactory>

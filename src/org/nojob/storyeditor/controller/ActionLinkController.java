@@ -25,7 +25,8 @@ public class ActionLinkController implements Callback<ButtonType, ActionLink>, E
     public static Dialog<ActionLink> create(ActionLink link, Window owner) {
         Dialog<ActionLink> dialog = new Dialog<>();
         dialog.initOwner(owner);
-        dialog.setTitle("创建连接");
+        dialog.setResizable(true);
+        dialog.setTitle("连接");
 
         DialogPane createLinkPane = new DialogPane();
 
@@ -55,22 +56,30 @@ public class ActionLinkController implements Callback<ButtonType, ActionLink>, E
     @FXML private Label id;
     @FXML private ComboBox<StoryAction> linkId;
     @FXML private TextField linkText;
+    @FXML private TextField linkTextTW;
+    @FXML private TextField linkTextENG;
     @FXML private ComboBox<Clue> clueList;
 
     private ActionLink editLink;
 
     public void initialize(ActionLink link) {
 
-        try {
-            editLink = link.clone();
-        } catch (CloneNotSupportedException e) {
-            e.printStackTrace();
-        }
+        editLink = link.clone();
 
         id.setText(link.getLinkFromId() + "");
         linkText.setText(link.getText());
         linkText.textProperty().addListener((observable, oldValue, newValue) -> {
             editLink.setText(newValue);
+        });
+
+        linkTextTW.setText(link.getTextTW());
+        linkTextTW.textProperty().addListener((observable, oldValue, newValue) -> {
+            editLink.setTextTW(newValue);
+        });
+
+        linkTextENG.setText(link.getTextENG());
+        linkTextENG.textProperty().addListener((observable, oldValue, newValue) -> {
+            editLink.setTextENG(newValue);
         });
 
         ObservableList<StoryAction> actions = StoryEditor.Instance().getProject().getActions().stream().filter(action -> action.getId() != link.getLinkFromId())

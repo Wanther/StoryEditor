@@ -9,30 +9,27 @@ import javafx.fxml.FXMLLoader;
 import javafx.fxml.JavaFXBuilderFactory;
 import javafx.scene.Node;
 import javafx.scene.control.*;
+import javafx.scene.control.cell.CheckBoxTableCell;
 import javafx.scene.paint.Color;
 import javafx.stage.Window;
 import javafx.util.Callback;
 import org.nojob.storyeditor.StoryEditor;
 import org.nojob.storyeditor.exception.AppException;
-import org.nojob.storyeditor.model.ActionItem;
-import org.nojob.storyeditor.model.Clue;
-import org.nojob.storyeditor.model.ConditionEvent;
-import org.nojob.storyeditor.model.StoryEvent;
+import org.nojob.storyeditor.model.*;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 /**
  * Created by wanghe on 16/8/10.
  */
-public class ActionItemController implements Callback<ButtonType, Map<String, Object>>, EventHandler<ActionEvent> {
+public class ActionItemController implements Callback<ButtonType, ActionItem>, EventHandler<ActionEvent> {
 
-    public static Dialog<Map<String, Object>> createDialog(ActionItem item, Window owner) {
-        Dialog<Map<String, Object>> dialog = new Dialog<>();
+    public static Dialog<ActionItem> createDialog(ActionItem item, Window owner) {
+        Dialog<ActionItem> dialog = new Dialog<>();
         dialog.initOwner(owner);
+        dialog.setTitle("节点条目");
         dialog.setResizable(true);
 
         FXMLLoader loader = new FXMLLoader();
@@ -46,9 +43,7 @@ public class ActionItemController implements Callback<ButtonType, Map<String, Ob
         }
 
         ActionItemController controller = loader.getController();
-        if (item != null) {
-            controller.bind(item);
-        }
+        controller.initialize(item);
 
         DialogPane dialogPane = new DialogPane();
         dialogPane.setContent(actionItemPane);
@@ -66,9 +61,9 @@ public class ActionItemController implements Callback<ButtonType, Map<String, Ob
 
     private static final File EMPTY_SOUND = new File("");
 
-    private Map<String, Object> modifiedMap = new HashMap<>();
-
     @FXML private TextField text;
+    @FXML private TextField textTW;
+    @FXML private TextField textENG;
     @FXML private CheckBox isBold;
     @FXML private ChoiceBox<String> fontSize;
     @FXML private ColorPicker fontColor;
@@ -80,67 +75,106 @@ public class ActionItemController implements Callback<ButtonType, Map<String, Ob
     @FXML private TableColumn<ConditionEvent, Boolean> conditionSelectedColumn;
     @FXML private ToggleGroup conditionGroup;
 
+    private ActionItem editingItem;
     private ObservableList<ConditionEvent> conditionEventList;
 
-    public void initialize() {
+    public void initialize(ActionItem item) {
+        editingItem = item.clone();
 
+        text.setText(editingItem.getText());
         text.textProperty().addListener((observable, oldValue, newValue) -> {
-            modifiedMap.put("text", newValue);
+            editingItem.setText(newValue);
         });
 
+        textTW.setText(editingItem.getTextTW());
+        textTW.textProperty().addListener((observable, oldValue, newValue) -> {
+            editingItem.setTextTW(newValue);
+        });
+
+        textENG.setText(editingItem.getTextENG());
+        textENG.textProperty().addListener((observable, oldValue, newValue) -> {
+            editingItem.setTextENG(newValue);
+        });
+
+        isBold.setSelected(editingItem.isBold());
         isBold.selectedProperty().addListener((observable, oldValue, newValue) -> {
-            modifiedMap.put("isBold", newValue);
+            editingItem.setBold(newValue);
         });
 
-        fontSize.setItems(ActionItem.FONT_SIZE);
-        fontSize.getSelectionModel().selectFirst();
+        fontSize.setItems(Project.FONT_SIZE_DESC);
+        fontSize.getSelectionModel().select(editingItem.getFontSize());
         fontSize.getSelectionModel().selectedIndexProperty().addListener((observable, oldValue, newValue) -> {
-            modifiedMap.put("fontSize", newValue.intValue());
+            editingItem.setFontSize(newValue.intValue());
         });
 
+        fontColor.setValue(Color.valueOf(editingItem.getFontColor()));
         fontColor.valueProperty().addListener((observable, oldValue, newValue) -> {
-            modifiedMap.put("fontColor", newValue.toString());
+            editingItem.setFontColor(newValue.toString());
         });
-        fontColor.setValue(Color.BLACK);
 
-        delay.setText("0");
+        delay.setText(editingItem.getDelay() + "");
         delay.textProperty().addListener((observable, oldValue, newValue) -> {
-            modifiedMap.put("delay", Long.valueOf(newValue));
+            long value = 0;
+            try {
+                value = Long.parseLong(newValue);
+            } catch (Exception e) {}
+            editingItem.setDelay(value);
         });
 
         ObservableList<StoryEvent> events = StoryEditor.Instance().getProject().eventsProperty().stream().collect(FXCollections::observableArrayList, List::add, List::addAll);
         events.add(0, StoryEvent.EMPTY);
         eventList.setItems(events);
-        eventList.setValue(StoryEvent.EMPTY);
+        eventList.setValue(editingItem.getEvent() == null ? StoryEvent.EMPTY : editingItem.getEvent());
         eventList.valueProperty().addListener((observable, oldValue, newValue) -> {
             if (newValue == StoryEvent.EMPTY) {
                 newValue = null;
             }
-            modifiedMap.put("event", newValue);
+            editingItem.setEvent(newValue);
         });
 
         ObservableList<Clue> clues = StoryEditor.Instance().getProject().cluesProperty().stream().collect(FXCollections::observableArrayList, List::add, List::addAll);
         clues.add(0, Clue.EMPTY);
         clueList.setItems(clues);
-        clueList.setValue(Clue.EMPTY);
+        clueList.setValue(editingItem.getClue() == null ? Clue.EMPTY : editingItem.getClue());
         clueList.valueProperty().addListener((observable, oldValue, newValue) -> {
             if (newValue == Clue.EMPTY) {
                 newValue = null;
             }
-            modifiedMap.put("clue", newValue);
+            editingItem.setClue(newValue);
         });
 
         ObservableList<File> sounds = StoryEditor.Instance().getProject().getSoundList().stream().collect(FXCollections::observableArrayList, List::add, List::addAll);
         sounds.add(0, EMPTY_SOUND);
         soundList.setItems(sounds);
-        soundList.setValue(EMPTY_SOUND);
+        if (editingItem.getSound() == null || "".equals(editingItem.getSound())) {
+            soundList.setValue(EMPTY_SOUND);
+        } else {
+            for (File sd : StoryEditor.Instance().getProject().getSoundList()) {
+                if (sd.getName().equals(editingItem.getSound())) {
+                    soundList.setValue(sd);
+                    break;
+                }
+            }
+        }
         soundList.valueProperty().addListener((observable, oldValue, newValue) -> {
-            modifiedMap.put("sound", newValue.getName().equals("") ? null : newValue.getName());
+            editingItem.setSound(newValue.getName().equals("") ? null : newValue.getName());
         });
 
-        conditionEventList = StoryEditor.Instance().getProject().getEventList().stream().collect(FXCollections::observableArrayList,
-                (list, item) -> list.add(new ConditionEvent(item, false)), List::addAll);
+        conditionSelectedColumn.setCellFactory(CheckBoxTableCell.forTableColumn(conditionSelectedColumn));
 
+        conditionEventList = FXCollections.observableArrayList();
+        StoryEditor.Instance().getProject().getEventList().forEach(event -> {
+            boolean selected = editingItem.getCondition() != null && editingItem.getCondition().getEvents().contains(event);
+            ConditionEvent ce = new ConditionEvent(event, selected);
+            ce.selectedProperty().addListener((observable, oldValue, newValue) -> {
+                if (newValue) {
+                    editingItem.getCondition().getEvents().add(ce.getEvent());
+                } else {
+                    editingItem.getCondition().getEvents().remove(ce.getEvent());
+                }
+            });
+            conditionEventList.add(ce);
+        });
         conditionEvents.setItems(conditionEventList);
         conditionEvents.setSelectionModel(null);
 
@@ -149,52 +183,34 @@ public class ActionItemController implements Callback<ButtonType, Map<String, Ob
                 case "0":
                 case "1":
                     conditionEvents.setVisible(true);
+                    ItemCondition con = editingItem.getCondition();
+                    if (con == null) {
+                        con = new ItemCondition();
+                        editingItem.setCondition(con);
+                    }
+                    con.setLogic(Integer.parseInt((String) newValue.getUserData()));
                     break;
                     default:
                         conditionEvents.setVisible(false);
+                        editingItem.setCondition(null);
             }
         });
-    }
 
-    public void bind(ActionItem item) {
-        modifiedMap.put("id", item.getId());
+        String toggleUserData = "-1";
+        if (editingItem.getCondition() != null) {
+            toggleUserData = editingItem.getCondition().getLogic() + "";
+        }
 
-        text.setText(item.getText());
-        isBold.setSelected(item.isBold());
-        fontSize.getSelectionModel().select(item.getFontSize());
-        fontColor.setValue(Color.valueOf(item.getFontColor()));
-        delay.setText(item.getDelay() + "");
-
-        eventList.getSelectionModel().select(item.getEvent());
-
-        clueList.getSelectionModel().select(item.getClue());
-
-        if (item.getSound() == null || "".equals(item.getSound())) {
-            soundList.setValue(EMPTY_SOUND);
-        } else {
-            for (File sd : StoryEditor.Instance().getProject().getSoundList()) {
-                if (sd.getName().equals(item.getSound())) {
-                    soundList.setValue(sd);
-                    break;
-                }
+        for (Toggle toggle : conditionGroup.getToggles()) {
+            if (toggleUserData.equals(toggle.getUserData())) {
+                toggle.setSelected(true);
             }
         }
-
-        if (item.getCondition() != null) {
-            conditionEventList.stream().filter(e -> item.getCondition().getEvents().contains(e)).forEach(e -> {
-                e.setSelected(true);
-            });
-            conditionEvents.refresh();
-        }
-
-        conditionSelectedColumn.setOnEditCommit(e -> {
-
-        });
     }
 
     @Override
     public void handle(ActionEvent event) {
-        String text = (String)modifiedMap.get("text");
+        String text = editingItem.getText();
         if (text == null || "".equals(text.trim())) {
             event.consume();
             StoryEditor.Instance().catchException(new AppException("请输入文字"));
@@ -202,9 +218,9 @@ public class ActionItemController implements Callback<ButtonType, Map<String, Ob
     }
 
     @Override
-    public Map<String, Object> call(ButtonType param) {
+    public ActionItem call(ButtonType param) {
         if (param == ButtonType.FINISH) {
-            return modifiedMap;
+            return editingItem;
         }
         return null;
     }

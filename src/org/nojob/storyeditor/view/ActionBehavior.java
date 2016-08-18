@@ -2,6 +2,7 @@ package org.nojob.storyeditor.view;
 
 import com.sun.javafx.scene.control.behavior.BehaviorBase;
 import javafx.geometry.Point2D;
+import javafx.scene.input.MouseEvent;
 
 /**
  * Created by wanghe on 16/8/4.
@@ -19,7 +20,6 @@ public class ActionBehavior extends BehaviorBase<ActionNode> {
     public void initialize() {
 
         ActionNode control = getControl();
-        control.autosize();
 
         control.layoutXProperty().addListener((observable, oldValue, newValue) -> {
             if (!oldValue.equals(newValue)) {
@@ -33,11 +33,9 @@ public class ActionBehavior extends BehaviorBase<ActionNode> {
             }
         });
 
-        control.setOnMousePressed(e -> {
-            dragPosition = new Point2D(e.getX(), e.getY());
-        });
+        control.addEventFilter(MouseEvent.MOUSE_PRESSED, e -> dragPosition = new Point2D(e.getX(), e.getY()));
 
-        control.setOnMouseDragged(e -> {
+        control.addEventFilter(MouseEvent.MOUSE_DRAGGED, e -> {
             e.consume();
 
             final Point2D mouseInParent = control.localToParent(e.getX(), e.getY());
@@ -45,8 +43,6 @@ public class ActionBehavior extends BehaviorBase<ActionNode> {
             control.relocate(mouseInParent.getX() - dragPosition.getX(), mouseInParent.getY() - dragPosition.getY());
         });
 
-        control.setOnMouseReleased(e -> {
-            dragPosition = Point2D.ZERO;
-        });
+        control.addEventFilter(MouseEvent.MOUSE_RELEASED, e -> dragPosition = Point2D.ZERO);
     }
 }

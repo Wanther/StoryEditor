@@ -3,17 +3,46 @@
 }
 
 .action-node {
-    -fx-border-color: #000000;
+    -fx-border-color: #cccccc;
+    -fx-border-radius: 2, 2;
     -fx-min-width: 100;
+    -fx-max-width: 200;
     -fx-min-height: 80;
-    -fx-padding: 5 5 5 5;
     -fx-background-color: #ffffff;
+    -fx-effect: dropshadow( gaussian , rgba(0,0,0,0.2) , 12, 0.0 , 0 , 8 );
 }
 
 .selected {
-    -fx-border-color: #ff0000;
+    -fx-effect: dropshadow( gaussian , rgba(0,0,0,0.5) , 12, 0.0 , 0 , 8 );
 }
 
 .searched {
-    -fx-background-color: #ffff00;
+    -fx-background-color: #fff59d;
+}
+
+.action-node-header{
+    -fx-padding: 5 5 5 5;
+    -fx-background-color: #dddddd;
+}
+
+.key-action {
+    -fx-background-color: CHART_COLOR_3;
+}
+
+.key-action .label{
+    -fx-text-fill: white;
+}
+
+.action-item-list{
+    -fx-padding: 0 5 5 5;
+}
+
+.action-item-text{
+    -fx-wrap-text: true;
+    -fx-max-width: 200;
+}
+
+.button-small{
+    -fx-font-size: 10px;
+    -fx-cursor: HAND;
 }

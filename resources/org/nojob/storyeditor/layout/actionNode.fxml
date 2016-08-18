@@ -1,13 +1,15 @@
 <?import javafx.scene.control.Label?>
+<?import javafx.scene.control.Separator?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
 <?import org.nojob.storyeditor.view.ActionNode?>
 <ActionNode xmlns:fx="http://javafx.com/fxml" styleClass="action-node">
     <VBox>
-        <HBox>
-            <Label fx:id="actionId"/>
-            <Label fx:id="keyActionText" VBox.vgrow="ALWAYS"/>
+        <HBox fx:id="header" styleClass="action-node-header">
+            <Label fx:id="actionId" />
+            <Label fx:id="keyActionText" HBox.hgrow="ALWAYS"/>
         </HBox>
-        <VBox fx:id="itemContainer"/>
+        <Separator />
+        <VBox fx:id="itemList" spacing="5" styleClass="action-item-list"/>
     </VBox>
 </ActionNode>
