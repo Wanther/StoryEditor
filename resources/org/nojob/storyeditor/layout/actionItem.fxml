@@ -4,7 +4,7 @@
 <?import javafx.scene.layout.*?>
 <?import org.nojob.storyeditor.view.cell.*?>
 <GridPane xmlns:fx="http://javafx.com/fxml"
-          fx:controller="org.nojob.storyeditor.controller.ActionItemController" vgap="5" hgap="5" prefWidth="800">
+          fx:controller="org.nojob.storyeditor.controller.ActionItemController" vgap="5" hgap="5" prefWidth="640">
     <padding>
         <Insets top="5" right="5" bottom="5" left="5"/>
     </padding>

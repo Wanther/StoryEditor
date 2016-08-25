@@ -4,12 +4,10 @@ import com.sun.javafx.scene.control.skin.BehaviorSkinBase;
 import javafx.collections.ListChangeListener;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
-import javafx.scene.control.Separator;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
-import javafx.scene.text.TextAlignment;
 import org.nojob.storyeditor.model.ActionItem;
 import org.nojob.storyeditor.model.Project;
 

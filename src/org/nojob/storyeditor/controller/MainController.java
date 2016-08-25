@@ -41,6 +41,8 @@ public class MainController {
     @FXML private MenuItem miExit;
     @FXML private MenuItem miZoomIn;
     @FXML private MenuItem miZoomOut;
+    @FXML private MenuItem miCopy;
+    @FXML private MenuItem miPaste;
 
     @FXML private Button tbNew;
     @FXML private Button tbOpen;
@@ -61,6 +63,8 @@ public class MainController {
             onProjectChanged(oldValue, newValue);
         });
         miSave.setAccelerator(KeyCombination.keyCombination("Ctrl+S"));
+        miCopy.setAccelerator(KeyCombination.keyCombination("Ctrl+C"));
+        miPaste.setAccelerator(KeyCombination.keyCombination("Ctrl+V"));
 
         tbSearchInput.setOnKeyPressed((KeyEvent e) -> {
             if (e.getCode() == KeyCode.ENTER) {
@@ -127,6 +131,20 @@ public class MainController {
     protected void onZoomOut() {
         if (projectController != null) {
             projectController.onZoomOut();
+        }
+    }
+
+    @FXML
+    protected void onCopy() {
+        if (projectController != null) {
+            projectController.onCopy();
+        }
+    }
+
+    @FXML
+    protected void onPaste() {
+        if (projectController != null) {
+            projectController.onPaste();
         }
     }
 

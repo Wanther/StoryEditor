@@ -7,7 +7,7 @@
 <VBox xmlns:fx="http://javafx.com/fxml"
       fx:id="root"
       fx:controller="org.nojob.storyeditor.controller.ActionDetailController"
-      fillWidth="true" prefWidth="1024" prefHeight="768">
+      fillWidth="true" prefWidth="640" prefHeight="480">
 
     <TitledPane animated="false" expanded="true" text="基本">
         <GridPane vgap="5.0" hgap="5">

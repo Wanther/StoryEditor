@@ -13,6 +13,8 @@ import java.util.List;
  */
 public class StoryAction implements Cloneable {
 
+    public static final int COPY_PASTE_DELTA_XY = 20;
+
     public static StoryAction create(int id, double x, double y) {
         StoryAction action = new StoryAction();
         action.setId(id);
@@ -237,6 +239,17 @@ public class StoryAction implements Cloneable {
         action.setY(getY());
         linkList.stream().collect(action::getLinkList, (list, item) -> list.add(item.clone()), List::addAll);
         itemList.stream().collect(action::getItemList, (list, item) -> list.add(item.clone()), List::addAll);
+
+        return action;
+    }
+
+    public StoryAction copy(Project project) {
+        StoryAction action = clone();
+        action.setId(project.nextActionID());
+        action.getLinkList().clear();
+        action.getItemList().forEach(item -> {
+            item.setId(project.nextItemId());
+        });
 
         return action;
     }

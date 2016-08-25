@@ -63,10 +63,10 @@ public class StoryEditor extends Application {
 
         Parent root = FXMLLoader.load(getClass().getResource("layout/main.fxml"));
 
-        primaryStage.setTitle("Story Editor");
+        primaryStage.setTitle("剧情编辑器");
         primaryStage.getIcons().add(new Image(getClass().getResourceAsStream("images/icon_app.png")));
-        primaryStage.setScene(new Scene(root, 1024, 768));
-        //primaryStage.setMaximized(true);
+        primaryStage.setScene(new Scene(root, 640, 480));
+        primaryStage.setMaximized(true);
         primaryStage.show();
     }
 

@@ -23,13 +23,13 @@ public class ActionBehavior extends BehaviorBase<ActionNode> {
 
         control.layoutXProperty().addListener((observable, oldValue, newValue) -> {
             if (!oldValue.equals(newValue)) {
-                control.getAction().setX(newValue.doubleValue());
+                getControl().getAction().setX(newValue.doubleValue());
             }
         });
 
         control.layoutYProperty().addListener((observable, oldValue, newValue) -> {
             if (!oldValue.equals(newValue)) {
-                control.getAction().setY(newValue.doubleValue());
+                getControl().getAction().setY(newValue.doubleValue());
             }
         });
 
@@ -40,7 +40,7 @@ public class ActionBehavior extends BehaviorBase<ActionNode> {
 
             final Point2D mouseInParent = control.localToParent(e.getX(), e.getY());
 
-            control.relocate(mouseInParent.getX() - dragPosition.getX(), mouseInParent.getY() - dragPosition.getY());
+            getControl().relocate(mouseInParent.getX() - dragPosition.getX(), mouseInParent.getY() - dragPosition.getY());
         });
 
         control.addEventFilter(MouseEvent.MOUSE_RELEASED, e -> dragPosition = Point2D.ZERO);

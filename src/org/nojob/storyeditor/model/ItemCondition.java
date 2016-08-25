@@ -71,9 +71,7 @@ public class ItemCondition implements Cloneable {
         JSONDocument json = JSONDocument.createObject();
         json.setNumber("logic", getLogic());
         JSONDocument array = JSONDocument.createArray();
-        getEvents().forEach(event -> {
-            array.array().add(event.getId());
-        });
+        getEvents().forEach(event -> array.array().add(event.getId()));
         json.set("event_id", array);
 
         return json;

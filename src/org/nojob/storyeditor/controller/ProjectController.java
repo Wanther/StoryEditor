@@ -8,6 +8,8 @@ import javafx.fxml.FXML;
 import javafx.geometry.Point2D;
 import javafx.scene.Node;
 import javafx.scene.control.*;
+import javafx.scene.input.Clipboard;
+import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.MouseEvent;
 import org.nojob.storyeditor.StoryEditor;
 import org.nojob.storyeditor.exception.AppException;
@@ -48,13 +50,16 @@ public class ProjectController {
             public void onChanged(Change<? extends Node> c) {
                 while (c.next()) {
                     if (c.wasAdded()) {
-                        c.getAddedSubList().stream().forEach(item -> {
+                        c.getAddedSubList().forEach(item -> {
                             item.getStyleClass().add("selected");
+                            if (item instanceof ActionNode) {
+                                item.toFront();
+                            }
                         });
                     }
 
                     if (c.wasRemoved()) {
-                        c.getRemoved().stream().forEach(item -> {
+                        c.getRemoved().forEach(item -> {
                             item.getStyleClass().remove("selected");
                         });
                     }
@@ -75,14 +80,56 @@ public class ProjectController {
         actionViewport.zoomOut();
     }
 
+    public void onCopy() {
+        copySelected();
+    }
+
+    public void onPaste() {
+        pasteCoppied(null, null);
+    }
+
     public void onSearch(String queryString) {
-        actionViewport.lookupAll(".searched").stream().forEach(actionNode -> {
+        actionViewport.lookupAll(".searched").forEach(actionNode -> {
             actionNode.getStyleClass().remove("searched");
         });
         if (queryString == null || "".equals(queryString.trim())) {
             return;
         }
         StoryEditor.Instance().async(new SearchTask(queryString));
+    }
+
+    protected void copySelected() {
+        if (!selectedNodes.isEmpty() && selectedNodes.get(0) instanceof ActionNode) {
+            ActionNode source = (ActionNode) selectedNodes.get(0);
+            Clipboard clipboard = Clipboard.getSystemClipboard();
+            ClipboardContent cc = new ClipboardContent();
+            cc.putString(source.getId());
+            clipboard.setContent(cc);
+        }
+    }
+
+    protected void pasteCoppied(Double newX, Double newY) {
+        Clipboard clipboard = Clipboard.getSystemClipboard();
+        if (clipboard.hasString()) {
+            String content = clipboard.getString();
+            if (content.startsWith("action_")) {
+                ActionNode actionNode = (ActionNode)actionViewport.lookup("#" + content);
+                if (actionNode != null) {
+                    StoryAction source = actionNode.getAction();
+                    StoryAction action = source.copy(StoryEditor.Instance().getProject());
+                    if (newX == null) {
+                        newX = action.getX() + StoryAction.COPY_PASTE_DELTA_XY;
+                    }
+                    if (newY == null) {
+                        newY = action.getY() + StoryAction.COPY_PASTE_DELTA_XY;
+                    }
+                    action.setX(newX);
+                    action.setY(newY);
+
+                    StoryEditor.Instance().getProject().getActions().add(action);
+                }
+            }
+        }
     }
 
     protected ContextMenu buildViewportContextMenu() {
@@ -98,6 +145,15 @@ public class ProjectController {
             StoryEditor.Instance().getProject().getActions().add(action);
         });
         menu.getItems().add(item);
+
+        item = new MenuItem("粘贴");
+        item.setOnAction(e -> {
+            MenuItem clicked = (MenuItem)e.getSource();
+            Point2D popup = actionViewport.getControlGroup().screenToLocal(new Point2D(clicked.getParentPopup().getAnchorX(), clicked.getParentPopup().getAnchorY()));
+            pasteCoppied(popup.getX(), popup.getY());
+        });
+        menu.getItems().add(item);
+
         return menu;
     }
 
@@ -120,6 +176,11 @@ public class ProjectController {
             MenuItem clicked = (MenuItem)e.getSource();
             showActionDetail((StoryAction) clicked.getProperties().get("target_action"));
         });
+        menu.getItems().add(item);
+
+        item = new MenuItem("复制");
+        item.getProperties().put("target_action", actionPane.getAction());
+        item.setOnAction(e -> copySelected());
         menu.getItems().add(item);
 
         item = new MenuItem("删除");
@@ -246,7 +307,7 @@ public class ProjectController {
                 showActionDetail(action);
             }
         });
-        actionNode.setOnMouseClicked((MouseEvent e) -> {
+        actionNode.setOnMousePressed((MouseEvent e) -> {
             selectedNodes.clear();
             selectedNodes.add(actionNode);
         });
