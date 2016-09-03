@@ -332,7 +332,15 @@ public class ActionItem implements Cloneable {
         json.setNumber("delay", getDelay());
         json.setString("sound", getSound());
         json.set("clue", getClue() == null ? null : getClue().toSaveJSON(type));
-        json.set("event_trigger", getEvent() == null ? null : getEvent().toSaveJSON(type));
+        if (type == Project.ALL) {
+            json.set("event_trigger", getEvent() == null ? null : getEvent().toSaveJSON(type));
+        } else {
+            if (getEvent() == null) {
+                json.set("event_trigger", null);
+            } else {
+                json.setNumber("event_trigger", getEvent().getId());
+            }
+        }
         json.set("condition", getCondition() == null ? null : getCondition().toSaveJSON(type));
 
         return json;
