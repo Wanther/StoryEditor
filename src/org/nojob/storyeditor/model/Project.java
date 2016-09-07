@@ -6,6 +6,7 @@ import javafx.beans.property.SimpleBooleanProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
+import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 
 import java.io.File;
@@ -36,8 +37,6 @@ public class Project {
         FONT_SIZE.add(FONT_SIZE.get(0) + 4);
     }
 
-
-
     public static final String PROJECT_FILE = ".storyEditor";
     public static final String RESOURCE_DIR = "resources";
     public static final String SOUND_DIR = "audio";
@@ -59,7 +58,15 @@ public class Project {
         project.setItemId(doc.getNumber("itemId").intValue());
         project.setClueId(doc.getNumber("clueId").intValue());
 
-        List<Object> objects = doc.getList("events");
+        List<Object> objects = doc.getList("customColors");
+        if (objects != null && !objects.isEmpty()) {
+            objects.stream().collect(project::getCustomColors, (list, item) -> {
+                Color color = Color.valueOf((String)item);
+                list.add(color);
+            }, List::addAll);
+        }
+
+        objects = doc.getList("events");
         if (objects != null && !objects.isEmpty()) {
             objects.stream().collect(project::eventsProperty, (list, item) -> {
                 StoryEvent event = StoryEvent.create((JSONDocument)item);
@@ -111,6 +118,7 @@ public class Project {
     private ObservableList<Clue> clues;
     private ObservableList<File> sounds;
     private BooleanProperty isLocked;
+    private ObservableList<Color> customColors = FXCollections.observableArrayList();
 
     public void init() {
         actionsProperty().addListener(new ListChangeListener<StoryAction>() {
@@ -278,6 +286,20 @@ public class Project {
         return isLockedProperty().get();
     }
 
+    public List<Color> getCustomColors() {
+        return customColors;
+    }
+
+    public void addCustomColor(Color color) {
+        if (!customColors.contains(color)) {
+            customColors.add(color);
+        }
+    }
+
+    public void removeCustomColor(Color color) {
+        customColors.remove(color);
+    }
+
     public StoryAction findActionById(int id) {
         for (StoryAction action : actionsProperty()) {
             if (action.getId() == id) {
@@ -299,14 +321,22 @@ public class Project {
     public JSONDocument toSaveJSON(int type) {
         JSONDocument project = JSONDocument.createObject();
 
+        JSONDocument array = null;
+
         if (type == Project.ALL) {
             project.setNumber("actionId", currentId);
             project.setNumber("itemId", currentItemId);
             project.setNumber("eventId", currentEventId);
             project.setNumber("clueId", currentClueId);
+
+            array = JSONDocument.createArray();
+            for (Color color : customColors) {
+                array.array().add(color.toString());
+            }
+            project.set("customColors", array);
         }
 
-        JSONDocument array = null;
+        array = null;
         if (events != null && !events.isEmpty()) {
             array = JSONDocument.createArray();
             for (StoryEvent event : events) {

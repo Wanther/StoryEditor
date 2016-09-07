@@ -1,6 +1,7 @@
 package org.nojob.storyeditor.controller;
 
 import javafx.collections.FXCollections;
+import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
@@ -108,6 +109,20 @@ public class ActionItemController implements Callback<ButtonType, ActionItem>, E
         });
 
         fontColor.setValue(Color.valueOf(editingItem.getFontColor()));
+        fontColor.getCustomColors().addAll(StoryEditor.Instance().getProject().getCustomColors());
+        fontColor.getCustomColors().addListener(new ListChangeListener<Color>() {
+            @Override
+            public void onChanged(Change<? extends Color> c) {
+                while (c.next()) {
+                    if (c.wasAdded()) {
+                        c.getAddedSubList().forEach(item -> StoryEditor.Instance().getProject().addCustomColor(item));
+                    }
+                    if (c.wasRemoved()) {
+                        c.getRemoved().forEach(item -> StoryEditor.Instance().getProject().removeCustomColor(item));
+                    }
+                }
+            }
+        });
         fontColor.valueProperty().addListener((observable, oldValue, newValue) -> {
             editingItem.setFontColor(newValue.toString());
         });
