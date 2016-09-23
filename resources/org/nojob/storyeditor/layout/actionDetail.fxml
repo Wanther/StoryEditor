@@ -32,11 +32,14 @@
                 <TextField fx:id="keyActionNameTW" GridPane.columnIndex="1" GridPane.rowIndex="3" GridPane.columnSpan="3" promptText="中文繁体"/>
                 <TextField fx:id="keyActionNameENG" GridPane.columnIndex="1" GridPane.rowIndex="4" GridPane.columnSpan="3" promptText="English"/>
 
-                <Label text="成就值" GridPane.columnIndex="0" GridPane.rowIndex="5"/>
-                <TextField fx:id="achievement" GridPane.columnIndex="1" GridPane.rowIndex="5"/>
+                <Label text="成就ID" GridPane.columnIndex="0" GridPane.rowIndex="5"/>
+                <TextField fx:id="achievementId" GridPane.columnIndex="1" GridPane.rowIndex="5" promptText="GameCenter成就ID"/>
 
-                <Label text="支付金额" GridPane.columnIndex="2" GridPane.rowIndex="5"/>
-                <TextField fx:id="payAmount" GridPane.columnIndex="3" GridPane.rowIndex="5"/>
+                <Label text="成就值" GridPane.columnIndex="2" GridPane.rowIndex="5"/>
+                <TextField fx:id="achievement" GridPane.columnIndex="3" GridPane.rowIndex="5"/>
+
+                <Label text="支付金额" GridPane.columnIndex="0" GridPane.rowIndex="6"/>
+                <TextField fx:id="payAmount" GridPane.columnIndex="1" GridPane.rowIndex="6"/>
             </children>
         </GridPane>
     </TitledPane>

@@ -35,6 +35,7 @@ public class StoryAction implements Cloneable {
         action.setKeyActionText(json.getString("keyValue"));
         action.setKeyActionTextTW(json.getString("keyValueTW"));
         action.setKeyActionTextENG(json.getString("keyValueENG"));
+        action.setAchievementId(json.getString("achievementId"));
         action.setAchievement(json.getNumber("achievement").intValue());
         action.setPayAmount(json.getNumber("payAmount").intValue());
 
@@ -66,6 +67,7 @@ public class StoryAction implements Cloneable {
     private StringProperty keyActionText;
     private StringProperty keyActionTextTW;
     private StringProperty keyActionTextENG;
+    private StringProperty achievementId;
     private IntegerProperty achievement;
     private IntegerProperty payAmount;
     private ObservableList<ActionLink> linkList = FXCollections.observableArrayList();
@@ -203,6 +205,21 @@ public class StoryAction implements Cloneable {
         achievementProperty().set(achievement);
     }
 
+    public StringProperty achievementIdProperty() {
+        if(achievementId == null) {
+            achievementId = new SimpleStringProperty(this, "achievementId");
+        }
+        return achievementId;
+    }
+
+    public String getAchievementId() {
+        return achievementIdProperty().get();
+    }
+
+    public void setAchievementId(String achievementId) {
+        achievementIdProperty().set(achievementId);
+    }
+
     public IntegerProperty payAmountProperty() {
         if (payAmount == null) {
             payAmount = new SimpleIntegerProperty(this, "payAmount");
@@ -233,6 +250,7 @@ public class StoryAction implements Cloneable {
         action.setKeyActionText(getKeyActionText());
         action.setKeyActionTextTW(getKeyActionTextTW());
         action.setKeyActionTextENG(getKeyActionTextENG());
+        action.setAchievementId(getAchievementId());
         action.setAchievement(getAchievement());
         action.setPayAmount(getPayAmount());
         action.setX(getX());
@@ -259,6 +277,7 @@ public class StoryAction implements Cloneable {
         setKeyActionText(other.getKeyActionText());
         setKeyActionTextTW(other.getKeyActionTextTW());
         setKeyActionTextENG(other.getKeyActionTextENG());
+        setAchievementId(other.getAchievementId());
         setAchievement(other.getAchievement());
         setPayAmount(other.getPayAmount());
         other.getLinkList().forEach(link -> {
@@ -325,6 +344,12 @@ public class StoryAction implements Cloneable {
             action.setNumber("y", getY());
         }
 
+        String achievementId = getAchievementId();
+        if (achievementId == null || "".equals(achievementId.trim())) {
+            action.setNull("achievementId");
+        } else {
+            action.setString("achievementId", getAchievementId());
+        }
         action.setNumber("achievement", getAchievement());
         action.setNumber("payAmount", getPayAmount());
 

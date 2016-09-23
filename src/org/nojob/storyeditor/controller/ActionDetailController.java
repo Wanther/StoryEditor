@@ -61,6 +61,7 @@ public class ActionDetailController implements Callback<ButtonType, StoryAction>
     @FXML private TextField keyActionName;
     @FXML private TextField keyActionNameTW;
     @FXML private TextField keyActionNameENG;
+    @FXML private TextField achievementId;
     @FXML private TextField achievement;
     @FXML private TextField payAmount;
     @FXML private TableView<ActionItem> itemListView;
@@ -111,6 +112,11 @@ public class ActionDetailController implements Callback<ButtonType, StoryAction>
         keyActionNameENG.textProperty().addListener((observable, oldValue, newValue) -> {
             editingAction.setKeyActionTextENG(newValue);
         });
+
+        achievementId.setText(action.getAchievementId());
+        achievementId.textProperty().addListener(((observable, oldValue, newValue) -> {
+            editingAction.setAchievementId(newValue);
+        }));
 
         achievement.setText(action.getAchievement() + "");
         achievement.textProperty().addListener((observable, oldValue, newValue) -> {

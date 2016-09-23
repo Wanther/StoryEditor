@@ -9,11 +9,10 @@
     -fx-max-width: 200;
     -fx-min-height: 80;
     -fx-background-color: #ffffff;
-    -fx-effect: dropshadow( gaussian , rgba(0,0,0,0.2) , 12, 0.0 , 0 , 8 );
 }
 
 .selected {
-    -fx-effect: dropshadow( gaussian , rgba(0,0,0,0.5) , 12, 0.0 , 0 , 8 );
+    -fx-effect: dropshadow( gaussian , rgba(0,0,0,0.2) , 12, 0.0 , 0 , 8 );
 }
 
 .searched {
